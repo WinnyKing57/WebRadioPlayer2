@@ -8,9 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     env:
-      ANDROID_SDK_ROOT: "${{ github.workspace }}/android-sdk"
       JAVA_HOME: "/usr/lib/jvm/java-11-openjdk-amd64"
 
     steps:
@@ -27,31 +25,15 @@ jobs:
         python3 -m pip install --upgrade pip setuptools wheel
         pip install buildozer cython
 
-    - name: Install Android SDK command line tools
+    - name: Pre-accept Android licenses
       run: |
-        mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-        wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
-        unzip -q cmdline-tools.zip -d cmdline-tools-temp
-        rm cmdline-tools.zip
-        mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-        mv cmdline-tools-temp/cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
-        rm -rf cmdline-tools-temp
-
-    - name: Setup Android SDK and accept licenses
-      run: |
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-        # Accept licenses in non-interactive mode
-        mkdir -p "$ANDROID_SDK_ROOT/licenses"
-        echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_SDK_ROOT/licenses/android-sdk-license"
-        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_SDK_ROOT/licenses/android-sdk-preview-license"
-        
-        # Install required components
-        sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33"
-        sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "build-tools;34.0.0"  # Version plus récente et stable
+        mkdir -p ~/.android
+        echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/licenses/android-sdk-license
+        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
 
     - name: Build APK with Buildozer
       run: |
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/34.0.0:$ANDROID_SDK_ROOT/platform-tools:$JAVA_HOME/bin:$PATH"
+        export PATH="$JAVA_HOME/bin:$PATH"
         buildozer -v android debug
 
     - name: Create GitHub Release and Upload APK
