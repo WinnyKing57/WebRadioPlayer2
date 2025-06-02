@@ -35,6 +35,19 @@ jobs:
         # As a general step, just ensure it's callable.
         aclocal --version || echo "aclocal not found or version error"
         echo "Autotools verification commands complete."
+        echo "Setting autotools environment variables..."
+        export ACLOCAL_FLAGS="-I /usr/share/aclocal"
+        export LIBTOOLIZE="libtoolize"
+        export ACLOCAL="aclocal"
+        export AUTOCONF="autoconf"
+        export AUTOMAKE="automake"
+        # Make these available to subsequent steps/commands in the job
+        echo "ACLOCAL_FLAGS=${ACLOCAL_FLAGS}" >> $GITHUB_ENV
+        echo "LIBTOOLIZE=${LIBTOOLIZE}" >> $GITHUB_ENV
+        echo "ACLOCAL=${ACLOCAL}" >> $GITHUB_ENV
+        echo "AUTOCONF=${AUTOCONF}" >> $GITHUB_ENV
+        echo "AUTOMAKE=${AUTOMAKE}" >> $GITHUB_ENV
+        echo "Autotools environment variables set."
         pip install buildozer cython
 
         # Set SDK root path (Buildozer's default)
