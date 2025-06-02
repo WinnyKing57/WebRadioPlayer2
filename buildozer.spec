@@ -32,6 +32,7 @@ android.background_color = #000000
 android.api = 34
 android.minapi = 23
 android.arch = arm64-v8a
+android.build_tools = 34.0.0
 
 # Permissions
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, WAKE_LOCK, FOREGROUND_SERVICE
