@@ -46,7 +46,7 @@ requirements =
     openssl,
     pyjnius,
     audiostream,
-    ffpyplayer,libffi==3.3
+    ffpyplayer,libffi==v3.3
 
 [buildozer]
 log_level = 2
