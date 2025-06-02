@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip openjdk-11-jdk git unzip
+        sudo apt-get install -y python3-pip openjdk-11-jdk git unzip libtool automake autoconf pkg-config
         pip install buildozer cython
 
         # Set SDK root path (Buildozer's default)
