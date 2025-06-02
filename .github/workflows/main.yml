@@ -25,15 +25,17 @@ jobs:
 
     - name: 📦 Install Android SDK and accept licenses
       run: |
-        mkdir -p "$HOME/android-sdk"
+        mkdir -p "$HOME/android-sdk/cmdline-tools"
         wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
-        unzip cmdline-tools.zip -d "$HOME/android-sdk/"
-        mkdir -p "$HOME/android-sdk/cmdline-tools/latest"
-        mv "$HOME/android-sdk/cmdline-tools/cmdline-tools"/* "$HOME/android-sdk/cmdline-tools/latest/"
+        unzip cmdline-tools.zip -d "$HOME/android-sdk/cmdline-tools"
+        mv "$HOME/android-sdk/cmdline-tools/cmdline-tools" "$HOME/android-sdk/cmdline-tools/latest"
         export ANDROID_HOME=$HOME/android-sdk
         export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
         yes | sdkmanager --licenses
         sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+    - name: Debug structure
+      run: ls -lR $HOME/android-sdk/cmdline-tools
 
     - name: 🛠️ Build APK with Buildozer
       run: |
