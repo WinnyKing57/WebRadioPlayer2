@@ -1,7 +1,7 @@
 name: Build APK
 
 on:
-  workflow_dispatch:  # ✅ permet de lancer manuellement depuis l'interface GitHub
+  workflow_dispatch:  # Permet de lancer manuellement depuis GitHub
   push:
     branches:
       - main
@@ -34,7 +34,7 @@ jobs:
         buildozer android debug
 
     - name: 📦 Upload APK artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3.1.3
       with:
         name: WebRadioPy-APK
         path: bin/*.apk
