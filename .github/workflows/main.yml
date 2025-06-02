@@ -25,21 +25,30 @@ jobs:
         python3 -m pip install --upgrade pip setuptools wheel
         pip install buildozer cython
 
-    - name: Pre-accept Android licenses
+    - name: Setup Android licenses (critical fix)
       run: |
-        mkdir -p ~/.android
-        echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/licenses/android-sdk-license
-        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
+        mkdir -p ~/.android/licenses
+        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/licenses/android-sdk-license
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
+        chmod -R 777 ~/.android
 
     - name: Build APK with Buildozer
       run: |
         export PATH="$JAVA_HOME/bin:$PATH"
         buildozer -v android debug
 
+    - name: Verify APK
+      run: |
+        if [ ! -f bin/*.apk ]; then
+          echo "APK not found! Build failed."
+          ls -laR bin/
+          exit 1
+        fi
+
     - name: Create GitHub Release and Upload APK
       uses: ncipollo/release-action@v1
       with:
         tag: v1.${{ github.run_number }}
-        name: "WebRadioPy APK Build"
+        name: "Radio App Build"
         artifacts: "bin/*.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
