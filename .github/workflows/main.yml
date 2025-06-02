@@ -46,6 +46,12 @@ jobs:
     - name: Build APK with Buildozer
       run: |
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/33.0.2:$ANDROID_SDK_ROOT/platform-tools:$JAVA_HOME/bin:$PATH"
+        # Télécharger Apache Ant depuis un miroir alternatif si nécessaire
+        wget https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.16-bin.tar.gz -O apache-ant.tar.gz || \
+        wget https://downloads.apache.org/ant/binaries/apache-ant-1.9.16-bin.tar.gz -O apache-ant.tar.gz
+        tar -xzf apache-ant.tar.gz -C /tmp
+        export ANT_HOME=/tmp/apache-ant-1.9.16
+        export PATH=$ANT_HOME/bin:$PATH
         buildozer android debug
 
     - name: Create GitHub Release and Upload APK
@@ -55,4 +61,3 @@ jobs:
         name: "WebRadioPy APK Build"
         artifacts: "bin/*.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
-
