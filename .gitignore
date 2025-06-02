@@ -47,7 +47,7 @@ env.bak/
 venv.bak/
 
 # Buildozer
-.bin/
+bin/
 .buildozer/
 .android/
 

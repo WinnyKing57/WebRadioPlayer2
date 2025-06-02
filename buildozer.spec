@@ -25,8 +25,8 @@ android.media_volume = 1
 android.background_color = #000000
 
 # Ressources
-icon.filename = assets/icon.png
-presplash.filename = assets/presplash.png
+#icon.filename = assets/icon.png
+#presplash.filename = assets/presplash.png
 
 # Configuration Android
 android.api = 34

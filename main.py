@@ -36,6 +36,8 @@ except Exception as e: # Catch other plyer import errors (e.g. missing OS compon
 import radio_logic # Assuming radio_logic.py is in the same directory
 import data_manager  # Assuming data_manager.py is in the same directory
 
+__version__ = "0.1.0"
+
 # --- Theme Constants ---
 THEME_LIGHT = 'light'
 THEME_DARK = 'dark'
