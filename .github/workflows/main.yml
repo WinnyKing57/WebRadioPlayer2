@@ -47,7 +47,7 @@ jobs:
       run: |
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/33.0.2:$PATH"
         which aidl
-        aidl --version
+        aidl  # Appeler aidl sans arguments pour voir le message d'aide
 
     - name: Build APK with Buildozer
       run: |
