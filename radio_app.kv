@@ -1,0 +1,120 @@
+#:kivy 2.1.0
+
+<StationListItem>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: '48dp'
+    padding: [5, 5]
+    spacing: 10
+
+    Label:
+        text: root.station_name
+        size_hint_x: 0.6 # Adjusted to make space for Play button
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.width, None
+        shorten: True
+        shorten_from: 'right'
+
+    Button: # Play Button for each station
+        text: "Play"
+        size_hint_x: 0.2
+        on_press: root.on_play_button_press()
+
+    ToggleButton: # Favorite Button
+        id: fav_button
+        text: 'Fav'
+        state: 'down' if root.is_currently_favorite else 'normal'
+        size_hint_x: 0.2 # Adjusted
+        on_press: root.on_favorite_button_press(self)
+
+<MainLayout>:
+    orientation: 'vertical'
+    radio_list_layout: radio_list_content_layout
+    custom_station_name_input: custom_name_input
+    custom_station_url_input: custom_url_input
+    add_custom_status_label: status_label_custom_add
+
+    # Link player control widgets
+    currently_playing_label: playing_label
+    volume_slider: vol_slider
+
+
+    # --- Player Control Section ---
+    BoxLayout:
+        size_hint_y: None
+        height: self.minimum_height # Make this section compact
+        padding: [10, 5]
+        spacing: 10
+        orientation: 'vertical' # Stack player controls vertically for now
+
+        Label:
+            id: playing_label
+            text: root.last_played_station_name # Bind to property in MainLayout
+            size_hint_y: None
+            height: '30dp'
+            font_size: '14sp'
+
+        Button:
+            text: "Stop All Audio"
+            size_hint_y: None
+            height: '40dp'
+            on_press: root.stop_audio()
+
+        BoxLayout: # Horizontal layout for volume label and slider
+            size_hint_y: None
+            height: '30dp'
+            Label:
+                text: "Volume:"
+                size_hint_x: 0.2
+            Slider:
+                id: vol_slider
+                min: 0.0
+                max: 1.0
+                value: 1.0 # Default volume
+                size_hint_x: 0.8
+                on_value: root.on_volume_change(self, self.value)
+
+
+    Label: # Title for station list
+        text: "Radio Stations"
+        size_hint_y: None
+        height: '48dp'
+        font_size: '20sp'
+
+    ScrollView:
+        size_hint: (1, 1)
+        do_scroll_x: False
+        GridLayout:
+            id: radio_list_content_layout
+            cols: 1
+            spacing: '2dp'
+            size_hint_y: None
+            bind: minimum_height=self.setter('height')
+
+    # --- Section for Adding Custom Radio (from previous step) ---
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: None
+        height: self.minimum_height
+        padding: [10, 10, 10, 10]
+        spacing: 5
+        Label:
+            text: "Add Custom Radio Station"
+            size_hint_y: None; height: '30dp'; font_size: '16sp'
+        TextInput:
+            id: custom_name_input
+            hint_text: "Station Name"
+            size_hint_y: None; height: '40dp'; multiline: False
+        TextInput:
+            id: custom_url_input
+            hint_text: "Station URL (stream link)"
+            size_hint_y: None; height: '40dp'; multiline: False
+        Button:
+            text: "Add Custom Radio"
+            size_hint_y: None; height: '48dp'
+            on_press: root.add_custom_station_ui()
+        Label:
+            id: status_label_custom_add
+            text: ""
+            size_hint_y: None; height: '30dp'

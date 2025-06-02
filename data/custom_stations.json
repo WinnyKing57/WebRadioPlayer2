@@ -1,0 +1,12 @@
+[
+    {
+        "name": "Custom 1",
+        "url": "http://custom1.com",
+        "custom": true
+    },
+    {
+        "name": "Custom 2",
+        "url": "http://custom2.com",
+        "custom": true
+    }
+]

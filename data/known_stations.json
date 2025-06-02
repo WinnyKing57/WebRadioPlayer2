@@ -1,0 +1,118 @@
+[
+    {
+        "name": "NRJ",
+        "url": "https://scdn.nrjaudio.fm/fr/30001/mp3_128.mp3?origine=radioenlignefrance&cdn_path=adswizz_lbs9"
+    },
+    {
+        "name": "France Info",
+        "url": "https://icecast.radiofrance.fr/franceinfo-midfi.mp3"
+    },
+    {
+        "name": "Enjoy 33",
+        "url": "http://radiotrg.ice.infomaniak.ch/radiotrg-high.mp3"
+    },
+    {
+        "name": "Beur FM",
+        "url": "https://beurfm.ice.infomaniak.ch/beurfm-high.mp3"
+    },
+    {
+        "name": "Champagne FM",
+        "url": "https://reims.ice.infomaniak.ch/reims-128.mp3"
+    },
+    {
+        "name": "G\u00e9n\u00e9rations - Rap FR",
+        "url": "https://generationfm.ice.infomaniak.ch/generationfm-high.mp3"
+    },
+    {
+        "name": "Skyrock",
+        "url": "https://icecast.skyrock.net/s/natio_aac_96k"
+    },
+    {
+        "name": "Skyrock 100% Fran\u00e7ais",
+        "url": "https://skyrock.fm/stream_webradio.php/radiofr_francais_64aac.aac"
+    },
+    {
+        "name": "Skyrock Alger",
+        "url": "https://skyrock.fm/stream_webradio.php/radiofr_alger_64aac.aac"
+    },
+    {
+        "name": "Skyrock Casablanca",
+        "url": "https://skyrock.fm/stream_webradio.php/radiofr_casablanca_64aac.aac"
+    },
+    {
+        "name": "RIRE & CHANSONS",
+        "url": "https://scdn.nrjaudio.fm/fr/30401/mp3_128.mp3?origine=radioenlignefrance&cdn_path=adswizz_lbs9"
+    },
+    {
+        "name": "France Culture",
+        "url": "https://icecast.radiofrance.fr/franceculture-lofi.mp3"
+    },
+    {
+        "name": "Cherie FM",
+        "url": "https://scdn.nrjaudio.fm/fr/30201/mp3_128.mp3?origine=radioenlignefrance&cdn_path=adswizz_lbs9"
+    },
+    {
+        "name": "France Inter",
+        "url": "https://icecast.radiofrance.fr/franceinter-midfi.mp3"
+    },
+    {
+        "name": "Fun Radio",
+        "url": "https://streaming.radio.rtl.fr/fun-1-44-128"
+    },
+    {
+        "name": "RMC",
+        "url": "https://audio.bfmtv.com/rmcradio_128.mp3?aw_0_1st.playerId=AudioPlayer_Web_Next"
+    },
+    {
+        "name": "Activ FM",
+        "url": "https://beforeactiv.ice.infomaniak.ch/beforeactiv.mp3"
+    },
+    {
+        "name": "France Bleu",
+        "url": "https://icecast.radiofrance.fr/fb1071-midfi.mp3"
+    },
+    {
+        "name": "Mouv'",
+        "url": "https://icecast.radiofrance.fr/mouv-midfi.mp3"
+    },
+    {
+        "name": "Europe 1",
+        "url": "https://europe1.lmn.fm/europe1.mp3"
+    },
+    {
+        "name": "Nostalgie",
+        "url": "https://scdn.nrjaudio.fm/adwz2/fr/30601/mp3_128.mp3"
+    },
+    {
+        "name": "RTL2",
+        "url": "https://streamer-04.rtl.fr/rtl2-1-44-128"
+    },
+    {
+        "name": "RFM",
+        "url": "https://http-live.sr.se/p3-aac-96"
+    },
+    {
+        "name": "Radio Reggae",
+        "url": "https://hd.lagrosseradio.info/lagrosseradio-reggae-192.mp3"
+    },
+    {
+        "name": "Goat Radio",
+        "url": "https://20min.dmd2streaming.com/20minuten_radio_128.mp3"
+    },
+    {
+        "name": "Europe2",
+        "url": "https://europe2.lmn.fm/europe2.mp3"
+    },
+    {
+        "name": "Mouv RapFR",
+        "url": "https://stream.radiofrance.fr/mouvrapfr/mouvrapfr.m3u8"
+    },
+    {
+        "name": "Mouv Classic",
+        "url": "https://stream.radiofrance.fr/mouvclassics/mouvclassics.m3u8"
+    },
+    {
+        "name": "Mouv Rap US",
+        "url": "https://stream.radiofrance.fr/mouvrapus/mouvrapus.m3u8"
+    }
+]
