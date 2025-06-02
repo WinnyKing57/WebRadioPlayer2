@@ -31,11 +31,12 @@ jobs:
         mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
         wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
         unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
-        mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
         rm cmdline-tools.zip
+        mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
 
     - name: 🛠️ Install SDK packages & accept licenses
       run: |
+        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$PATH"
         yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
         sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
@@ -46,6 +47,7 @@ jobs:
     - name: 🛠️ Build APK with Buildozer
       run: |
         export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$PATH"
         buildozer android debug || (cat .buildozer/android/platform/android-*/build.log && exit 1)
 
