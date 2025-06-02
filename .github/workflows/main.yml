@@ -39,13 +39,14 @@ jobs:
 
     - name: Install SDK packages & accept licenses
       run: |
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
         yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
         sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
     - name: Build APK with Buildozer
       run: |
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$JAVA_HOME/bin:$PATH"
-        buildozer android debug || (cat .buildozer/android/platform/android-*/build.log && exit 1)
+        buildozer android debug
 
     - name: Create GitHub Release and Upload APK
       uses: ncipollo/release-action@v1
