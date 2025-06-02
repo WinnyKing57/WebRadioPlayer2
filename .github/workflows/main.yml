@@ -37,21 +37,22 @@ jobs:
         mv cmdline-tools-temp/cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
         rm -rf cmdline-tools-temp
 
-    - name: Install SDK packages & accept licenses
+    - name: Setup Android SDK and accept licenses
       run: |
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-        yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
-        sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
-
-    - name: Verify Build Tools Installation
-      run: |
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/33.0.2:$PATH"
-        yes | sdkmanager --licenses || true
+        # Accept licenses in non-interactive mode
+        mkdir -p "$ANDROID_SDK_ROOT/licenses"
+        echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_SDK_ROOT/licenses/android-sdk-license"
+        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_SDK_ROOT/licenses/android-sdk-preview-license"
+        
+        # Install required components
+        sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33"
+        sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "build-tools;34.0.0"  # Version plus récente et stable
 
     - name: Build APK with Buildozer
       run: |
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/33.0.2:$ANDROID_SDK_ROOT/platform-tools:$JAVA_HOME/bin:$PATH"
-        buildozer android debug
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/34.0.0:$ANDROID_SDK_ROOT/platform-tools:$JAVA_HOME/bin:$PATH"
+        buildozer -v android debug
 
     - name: Create GitHub Release and Upload APK
       uses: ncipollo/release-action@v1
@@ -60,4 +61,3 @@ jobs:
         name: "WebRadioPy APK Build"
         artifacts: "bin/*.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
-
