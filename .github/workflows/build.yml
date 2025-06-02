@@ -18,15 +18,48 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y python3-pip openjdk-11-jdk git unzip
         pip install buildozer cython
-        # Set ANDROID_SDK_ROOT and ANDROID_HOME just in case Buildozer picks them up,
-        # but primarily we'll let Buildozer manage its own SDK download.
-        # These paths might be used by Buildozer to decide where to place its downloaded SDK.
+
+        # Set SDK root path (Buildozer's default)
         export ANDROID_SDK_ROOT=${HOME}/.buildozer/android/platform/android-sdk
-        export ANDROID_HOME=${HOME}/.buildozer/android/platform/android-sdk
+        mkdir -p ${ANDROID_SDK_ROOT}
         echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV
-        echo "ANDROID_HOME=${ANDROID_HOME}" >> $GITHUB_ENV
-        # It's also good practice to ensure the .buildozer directory can be written to by the runner user
-        mkdir -p ${HOME}/.buildozer/
+        echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV # Also set ANDROID_HOME
+
+        # Download and install Android SDK command-line tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools-tmp # Temporary directory for unzipping
+        unzip -q cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools-tmp
+        rm cmdline-tools.zip
+
+        # The zip typically creates a 'cmdline-tools' directory inside cmdline-tools-tmp.
+        # We need to move its contents (bin, lib, etc.) to mimic the old SDK structure
+        # where sdkmanager was in $SDK_ROOT/tools/bin/sdkmanager.
+        # The 'cmdline-tools' unzipped folder often contains subfolders like 'bin', 'lib'.
+        # We are taking the contents of the unzipped 'cmdline-tools' (e.g. cmdline-tools-tmp/cmdline-tools/*)
+        # and placing them into $ANDROID_SDK_ROOT/tools/
+        # Specifically, files from cmdline-tools/bin -> $ANDROID_SDK_ROOT/tools/bin
+        # and cmdline-tools/lib -> $ANDROID_SDK_ROOT/tools/lib
+
+        # Create the target $ANDROID_SDK_ROOT/tools directory
+        mkdir -p ${ANDROID_SDK_ROOT}/tools
+
+        # Move the contents of the unzipped 'cmdline-tools' directory (e.g., cmdline-tools/bin, cmdline-tools/lib)
+        # into the $ANDROID_SDK_ROOT/tools directory.
+        # The structure within commandlinetools-linux-9477386_latest.zip is a single 'cmdline-tools' folder.
+        # So, after unzipping to cmdline-tools-tmp, we have cmdline-tools-tmp/cmdline-tools/
+        mv ${ANDROID_SDK_ROOT}/cmdline-tools-tmp/cmdline-tools/* ${ANDROID_SDK_ROOT}/tools/
+        rm -rf ${ANDROID_SDK_ROOT}/cmdline-tools-tmp
+
+        # Ensure the sdkmanager is executable
+        chmod +x ${ANDROID_SDK_ROOT}/tools/bin/sdkmanager || true # Allow to fail if not found, but should be there
+
+        # Add $ANDROID_SDK_ROOT/tools/bin to PATH for this step and subsequent steps
+        export PATH=${ANDROID_SDK_ROOT}/tools/bin:${PATH}
+        echo "PATH=${PATH}" >> $GITHUB_ENV
+
+        echo "Android SDK command-line tools installed and configured for legacy path."
+        echo "SDK Manager should be at: ${ANDROID_SDK_ROOT}/tools/bin/sdkmanager"
+        ls -la ${ANDROID_SDK_ROOT}/tools/bin/ || true # List contents for verification
 
     - name: Accept Android licenses
       run: |
