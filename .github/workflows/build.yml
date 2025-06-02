@@ -18,59 +18,43 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y python3-pip openjdk-11-jdk git unzip
         pip install buildozer cython
-        export ANDROID_SDK_ROOT=${HOME}/android-sdk
-        mkdir -p ${ANDROID_SDK_ROOT}
-        echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV
+        # Set ANDROID_SDK_ROOT and ANDROID_HOME just in case Buildozer picks them up,
+        # but primarily we'll let Buildozer manage its own SDK download.
+        # These paths might be used by Buildozer to decide where to place its downloaded SDK.
+        export ANDROID_SDK_ROOT=${HOME}/.buildozer/android/platform/android-sdk
+        export ANDROID_HOME=${HOME}/.buildozer/android/platform/android-sdk
         echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV
-
-        # Install sdkmanager (command-line tools) first.
-        # We need sdkmanager to determine and download other packages.
-        # Using a recent fixed version for cmdline-tools as bootstrapping.
-        # Dynamic latest for cmdline-tools can be tricky if sdkmanager itself needs an update.
-        # Let's ensure 'latest' is always there.
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-        mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools-tmp
-        unzip -q cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools-tmp
-        mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest # Ensure 'latest' directory exists
-        mv ${ANDROID_SDK_ROOT}/cmdline-tools-tmp/cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/
-        rm -rf ${ANDROID_SDK_ROOT}/cmdline-tools-tmp cmdline-tools.zip
-        export PATH=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}
-        echo "PATH=${PATH}" >> $GITHUB_ENV
-
-        # Update sdkmanager to the latest version if possible, and list packages
-        sdkmanager --update || true # Allow to fail if already latest or network issue, but attempt
-        echo "Available packages:"
-        sdkmanager --list_installed || true # List installed packages for debugging
-        sdkmanager --list || true # List all available packages for debugging
-
-        # Determine the latest stable build-tools version.
-        # This filters for build-tools, extracts versions, sorts them, and gets the last one.
-        LATEST_BUILD_TOOLS=$(sdkmanager --list | grep 'build-tools;' | cut -d';' -f2 | sed 's/^[ 	]*//;s/[ 	]*$//' | awk '{print $1}' | sort -V | tail -n 1)
-        if [ -z "$LATEST_BUILD_TOOLS" ]; then
-          echo "Could not determine latest build-tools version. Exiting."
-          exit 1
-        fi
-        echo "Latest build-tools version determined: $LATEST_BUILD_TOOLS"
-
-        # Install the latest build-tools, platform-tools, and the required platform for API 34
-        echo "Installing: platform-tools, build-tools;$LATEST_BUILD_TOOLS, platforms;android-34"
-        yes | sdkmanager "platform-tools" "build-tools;$LATEST_BUILD_TOOLS" "platforms;android-34"
-
-        echo "SDK setup complete."
+        echo "ANDROID_HOME=${ANDROID_HOME}" >> $GITHUB_ENV
+        # It's also good practice to ensure the .buildozer directory can be written to by the runner user
+        mkdir -p ${HOME}/.buildozer/
 
     - name: Accept Android licenses
       run: |
-        mkdir -p ${ANDROID_SDK_ROOT}/licenses ~/.android/licenses
-        # Add known licenses (these might be redundant if 'sdkmanager --licenses' works, but harmless)
-        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ${ANDROID_SDK_ROOT}/licenses/android-sdk-license
-        echo "84831b9409646a918e30573bab4c9c91346d8abd" > ${ANDROID_SDK_ROOT}/licenses/android-sdk-preview-license
-        echo "d975f751698a77b662f1254ddbeed3901e976f5a" > ${ANDROID_SDK_ROOT}/licenses/android-sdk-arm-dbt-license
-        echo "fd6b01a7e7a4e4f37591efa21e1a51710ac17ef4" > ${ANDROID_SDK_ROOT}/licenses/intel-android-extra-license
-        # Attempt to accept all remaining licenses
-        yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --licenses
+        # ANDROID_SDK_ROOT is now ${HOME}/.buildozer/android/platform/android-sdk
+        # Create license directories in common locations.
+        mkdir -p ${ANDROID_SDK_ROOT}/licenses
+        mkdir -p ${HOME}/.android/licenses
+
+        # Pre-accept common licenses by writing their hashes to files.
+        # Buildozer's internal SDK manager might pick these up.
+        LICENSE_DIR_1=${ANDROID_SDK_ROOT}/licenses
+        LICENSE_DIR_2=${HOME}/.android/licenses
+
+        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" | tee ${LICENSE_DIR_1}/android-sdk-license ${LICENSE_DIR_2}/android-sdk-license > /dev/null
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" | tee ${LICENSE_DIR_1}/android-sdk-preview-license ${LICENSE_DIR_2}/android-sdk-preview-license > /dev/null
+        echo "d975f751698a77b662f1254ddbeed3901e976f5a" | tee ${LICENSE_DIR_1}/android-sdk-arm-dbt-license ${LICENSE_DIR_2}/android-sdk-arm-dbt-license > /dev/null
+        echo "fd6b01a7e7a4e4f37591efa21e1a51710ac17ef4" | tee ${LICENSE_DIR_1}/intel-android-extra-license ${LICENSE_DIR_2}/intel-android-extra-license > /dev/null
+        # Add the hash that was specifically problematic for build-tools;36.0.0, just in case.
+        # The problematic hash for "Android SDK Build-Tools 36" if known, could be added.
+        # However, since we don't have a specific hash for "build-tools;36.0.0" from the logs,
+        # we'll rely on the `buildozer android update -p` step to handle this.
+        # For now, the generic ones are included.
+
+        echo "Pre-accepted some common Android SDK licenses."
 
     - name: Build APK
       run: |
+        yes | buildozer android update -p
         buildozer -v android debug
         ls -la bin/
 
