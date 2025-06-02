@@ -1,11 +1,9 @@
-name: Build APK
+name: Build and Release APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,9 +12,6 @@ jobs:
     steps:
     - name: 📥 Checkout repository
       uses: actions/checkout@v3
-
-    - name: ✅ Force metadata update
-      run: git config --global --add safe.directory /home/runner/work/WebRadioPy/WebRadioPy
 
     - name: ⚙️ Install system dependencies
       run: |
@@ -32,8 +27,10 @@ jobs:
       run: |
         buildozer android debug
 
-    - name: 📦 Upload APK artifact
-      uses: actions/upload-artifact@v2
+    - name: 📤 Create GitHub Release and Upload APK
+      uses: ncipollo/release-action@v1
       with:
-        name: WebRadioPy-APK
-        path: bin/*.apk
+        tag: v1.${{ github.run_number }}
+        name: "WebRadioPy APK Build"
+        artifacts: "bin/*.apk"
+        token: ${{ secrets.GITHUB_TOKEN }}
