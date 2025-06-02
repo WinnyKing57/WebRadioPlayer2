@@ -43,6 +43,11 @@ jobs:
         yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
         sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
+    - name: Verify Build Tools Installation
+      run: |
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/33.0.2:$PATH"
+        yes | sdkmanager --licenses || true
+
     - name: Build APK with Buildozer
       run: |
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/33.0.2:$ANDROID_SDK_ROOT/platform-tools:$JAVA_HOME/bin:$PATH"
@@ -55,3 +60,4 @@ jobs:
         name: "WebRadioPy APK Build"
         artifacts: "bin/*.apk"
         token: ${{ secrets.GITHUB_TOKEN }}
+
