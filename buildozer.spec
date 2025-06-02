@@ -1,115 +1,89 @@
 [app]
 
-# (str) Title of your application
+# Titre et identification
 title = Radio App
-
-# (str) Package name
 package.name = radioapp
-
-# (str) Package domain (needed for Android/iOS)
 package.domain = org.myradio
 
-# (str) Source code directory (current directory for this project)
+# Gestion des sources
 source.dir = .
+source.include_exts = py,png,jpg,jpeg,gif,kv,atlas,json,txt,mp3,wav,ogg
+source.exclude_exts = spec,ini,log,db
+source.exclude_dirs = tests,bin,.buildozer,.venv,__pycache__,backups
 
-# (list) Source files to include (Python, Kivy, JSON data, images, etc.)
-source.include_exts = py,png,jpg,jpeg,gif,kv,atlas,json,txt,mp3,wav
+# Version
+version = 1.0.0
+version.regex = __version__ = ['"](.*)['"]
+version.filename = %(source.dir)s/main.py
 
-# (list) Source files to exclude
-source.exclude_exts = spec,ini
-source.exclude_dirs = tests, bin, .buildozer, .venv, __pycache__
-
-# (str) Application version
-version = 0.1
-
-# (list) Application requirements
-requirements = python3,kivy~=2.3.0,requests,plyer,setuptools,six,hostpython3
-
-# (str) Supported orientation (portrait, landscape, all, etc.)
+# Configuration technique
 orientation = portrait
-
-# (bool) Fullscreen mode (1=yes, 0=no)
 fullscreen = 1
-
-# (str) Icon filename
-icon.filename = icon.png
-
-# (str) Presplash image (optional)
-# presplash.filename = presplash.png
-
-# (list) Permissions
-android.permissions = INTERNET
-
-# (int) Android API to use (set to 33 for modern support)
-android.api = 33
-
-# (int) Minimum Android API supported
-android.minapi = 21
-
-# (str) Android architecture (use arm64-v8a for 64-bit or armeabi-v7a for max compatibility)
-android.arch = armeabi-v7a
-
-# (list) Filters to apply in the logcat output (useful for debugging)
-android.logcat_filters = *:S python:D
-
-# (bool) Enable Android x86 builds (optional, default is false)
-# android.enable_x86 = False
-
-# (list) Android application meta-data to set (key=value format)
-# android.meta_data = 
-
-# (bool) Android hardware acceleration (recommended for media apps)
 android.hardwareAccelerated = 1
+android.allow_backup = False
+android.wakelock = 1
+android.media_volume = 1
 
-# (str) Entry point for the application (default is main.py)
-# entrypoint = main.py
+# Ressources graphiques
+icon.filename = icon.png
+presplash.filename = presplash.png
 
-# (str) Environment variables to export into the build
-# environment_variables = 
+# Spécifications Android
+android.api = 34
+android.minapi = 23
+android.arch = arm64-v8a
+# android.archs = arm64-v8a,armeabi-v7a  # Alternative multi-arch
+android.permissions = INTERNET, ACCESS_NETWORK_STATE, WAKE_LOCK, FOREGROUND_SERVICE
+android.adaptive_icon_foreground = icon_foreground.png
+android.adaptive_icon_background = #FFFFFF
+android.enable_androidx = True
+android.meta_data = com.google.android.gms.ads.APPLICATION_ID=ca-app-pub-xxxxxxxx~yyyyyyyyyy
 
-# (str) Package inclusion/exclusion options
-# android.add_src = 
-# android.add_jars = 
-# android.add_aars = 
+# Dépendances
+requirements = 
+    python3==3.10.12,
+    kivy==2.3.0,
+    requests==2.31.0,
+    plyer==2.1.0,
+    android,
+    openssl,
+    certifi,
+    urllib3,
+    pyjnius,
+    audiostream==3.0.0,
+    ffpyplayer,
+    pillow
 
-#
-# iOS specific
-#
-
-# (str) iOS certificate
-# ios.codesign.debug = 
-# ios.codesign.release = 
-
-#
-# OSX specific
-#
-
-# (str) OSX Kivy Window Manager style
-# osx.kivy_window_manager_style = sdl2
-
+# Configuration avancée
+p4a.options = --debug
+p4a.branch = develop
+p4a.release = False
 
 [buildozer]
 
-# (int) Log level (0 = error, 1 = info, 2 = debug)
+# Configuration de build
 log_level = 2
-
-# (int) Display warning if buildozer is run as root (0 = False, 1 = True)
 warn_on_root = 1
+target = android
+package_type = apk
 
-# (str) Directory to store the build (default is ~/.buildozer)
-# build_dir = ./.buildozer
+# Répertoires
+build_dir = ./.buildozer
+bin_dir = ./bin
 
-# (str) Directory where the final APK is stored
-# bin_dir = ./bin
+# Options de débogage
+debug = 1
+verbose = True
+android.accept_sdk_license = True
 
-# (str) Android SDK path (usually auto-detected)
+# Configuration NDK/SDK (laisser vide pour auto-détection)
 # android.sdk_path = 
-
-# (str) Android NDK path (usually auto-detected)
 # android.ndk_path = 
+# android.ndk_version = 25b
 
-# (str) Additional command line args passed to p4a
-# p4a.extra_args = 
+# Personnalisation du build
+# p4a.extra_args = --service=MyService:foreground
 
-# (bool) Enable verbose output during build
-# verbose = 1
+# Hook personnalisé (optionnel)
+# pre_build = python pre_build_hook.py
+# post_build = python post_build_hook.py
