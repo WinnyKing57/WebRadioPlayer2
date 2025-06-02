@@ -31,7 +31,7 @@ jobs:
         ls -la bin/
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: webradio-apk
         path: bin/*.apk
