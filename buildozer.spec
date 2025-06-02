@@ -30,7 +30,7 @@ version = 0.1
 # (list) Requirements of your application
 # Specify versions if needed, e.g., kivy==2.3.0 or kivy~=2.3.0
 # Using kivy~=2.3.0 based on subtask report where Kivy 2.3.1 was installed.
-requirements = python3,kivy~=2.3.0,requests
+requirements = python3,kivy~=2.3.0,requests,plyer
 
 # (str) Custom Kivy version to use (e.g., "stable", "master", "2.3.0")
 # Kivy version is usually handled by the requirements line.
