@@ -16,7 +16,25 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip openjdk-11-jdk git unzip libtool automake autoconf pkg-config
+        sudo apt-get install -y python3-pip openjdk-11-jdk git unzip libtool automake autoconf pkg-config m4
+        echo "Verifying autotools installations and m4 files..."
+        libtool --version || echo "libtool not found or version error"
+        autoconf --version || echo "autoconf not found or version error"
+        automake --version || echo "automake not found or version error"
+        pkg-config --version || echo "pkg-config not found or version error"
+        m4 --version || echo "m4 not found or version error"
+        
+        echo "Listing contents of /usr/share/aclocal/ to check for libtool.m4..."
+        ls -la /usr/share/aclocal/ || echo "/usr/share/aclocal/ not found or cannot be listed"
+        if [ -f "/usr/share/aclocal/libtool.m4" ]; then
+          echo "libtool.m4 found in /usr/share/aclocal/"
+        else
+          echo "WARNING: libtool.m4 NOT found in /usr/share/aclocal/"
+        fi
+        # Attempt to update aclocal's cache if possible (may require specific permissions or context)
+        # As a general step, just ensure it's callable.
+        aclocal --version || echo "aclocal not found or version error"
+        echo "Autotools verification commands complete."
         pip install buildozer cython
 
         # Set SDK root path (Buildozer's default)
@@ -87,6 +105,18 @@ jobs:
 
     - name: Build APK
       run: |
+        echo "Cleaning Buildozer caches and previous build artifacts..."
+        rm -rf .buildozer/android/platform/build-* 
+        rm -rf .buildozer/android/platform/dist-* 
+        rm -rf .buildozer/android/packages/* 
+        rm -rf .buildozer/android/app/ # This might be excessive, but ensures a clean state for app sources if they are copied here
+        # Alternatively, a more targeted clean for packages:
+        # rm -rf .buildozer/android/platform/build-*/{build,dists,other_stuff_related_to_recipes}
+        # rm -rf .buildozer/android/packages/libffi # Example if libffi is suspected
+        # For now, the broader rm -rf lines are used for a more thorough clean.
+
+        echo "Caches cleaned."
+
         yes | buildozer android update -p
         buildozer -v android debug
         ls -la bin/
