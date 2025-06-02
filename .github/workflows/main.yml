@@ -10,9 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-      ANDROID_HOME: ${{ github.workspace }}/android-sdk
-      PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/emulator:${PATH}
+      ANDROID_SDK_ROOT: ${{ runner.home }}/android-sdk
+      PATH: ${{ runner.home }}/android-sdk/cmdline-tools/latest/bin:${{ runner.home }}/android-sdk/platform-tools:${{ runner.home }}/android-sdk/emulator:${{ env.PATH }}
 
     steps:
     - name: 📥 Checkout repository
@@ -21,41 +20,34 @@ jobs:
     - name: ⚙️ Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3 python3-pip openjdk-11-jdk unzip zip git wget libgles2-mesa-dev
+        sudo apt-get install -y python3 python3-pip openjdk-11-jdk unzip zip git wget libgles2-mesa-dev tar
 
     - name: 🐍 Install Python dependencies
       run: |
-        python3 -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip setuptools wheel
         pip install buildozer cython
 
-    - name: 📦 Install Android SDK command line tools
+    - name: 📦 Install Android SDK command line tools and accept licenses
       run: |
         mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
         unzip -q cmdline-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools
         mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
         rm cmdline-tools.zip
 
-    - name: 🛠️ Install platform-tools & platforms
-      run: |
-        sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33"
+        echo "Installing SDK packages..."
+        yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses || true
+        sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-    - name: ✅ Accept all SDK licenses
+    - name: 🔍 Verify Android SDK installation
       run: |
-        yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-
-    - name: 🛠️ Install build-tools 36.0.0
-      run: |
-        sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;36.0.0"
-
-    - name: Debug SDK structure
-      run: ls -lR $ANDROID_SDK_ROOT
+        ls -lR $ANDROID_SDK_ROOT
 
     - name: 🛠️ Build APK with Buildozer
       run: |
-        export ANDROID_HOME=$ANDROID_SDK_ROOT
-        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
-        buildozer android debug
+        export ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT
+        export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$PATH
+        buildozer android debug || (cat .buildozer/android/platform/android-*/build.log && exit 1)
 
     - name: 📤 Create GitHub Release and Upload APK
       uses: ncipollo/release-action@v1
