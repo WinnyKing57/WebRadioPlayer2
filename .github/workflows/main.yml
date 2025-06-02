@@ -10,48 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ANDROID_SDK_ROOT: "${HOME}/android-sdk"
+      ANDROID_SDK_ROOT: "${{ github.workspace }}/android-sdk"
+      JAVA_HOME: "/usr/lib/jvm/java-11-openjdk-amd64"
 
     steps:
-    - name: 📥 Checkout repository
+    - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: ⚙️ Install system dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y python3 python3-pip openjdk-11-jdk unzip zip git wget libgles2-mesa-dev tar
 
-    - name: 🐍 Install Python dependencies
+    - name: Install Python dependencies
       run: |
         python3 -m pip install --upgrade pip setuptools wheel
         pip install buildozer cython
 
-    - name: 📦 Install Android SDK command line tools
+    - name: Install Android SDK command line tools
       run: |
         mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
         wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
-        unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+        unzip -q cmdline-tools.zip -d cmdline-tools-temp
         rm cmdline-tools.zip
-        mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+        mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+        mv cmdline-tools-temp/cmdline-tools/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/"
+        rm -rf cmdline-tools-temp
 
-    - name: 🛠️ Install SDK packages & accept licenses
+    - name: Install SDK packages & accept licenses
       run: |
-        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$PATH"
         yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
         sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-    - name: 🔍 Verify Android SDK installation
-      run: ls -lR "$ANDROID_SDK_ROOT"
-
-    - name: 🛠️ Build APK with Buildozer
+    - name: Build APK with Buildozer
       run: |
-        export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
-        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$PATH"
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$JAVA_HOME/bin:$PATH"
         buildozer android debug || (cat .buildozer/android/platform/android-*/build.log && exit 1)
 
-    - name: 📤 Create GitHub Release and Upload APK
+    - name: Create GitHub Release and Upload APK
       uses: ncipollo/release-action@v1
       with:
         tag: v1.${{ github.run_number }}
