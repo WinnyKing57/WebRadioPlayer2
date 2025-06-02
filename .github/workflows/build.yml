@@ -45,7 +45,7 @@ jobs:
 
         # Determine the latest stable build-tools version.
         # This filters for build-tools, extracts versions, sorts them, and gets the last one.
-        LATEST_BUILD_TOOLS=$(sdkmanager --list | grep 'build-tools;' | cut -d';' -f2 | sed 's/^[ 	]*//;s/[ 	]*$//' | sort -V | tail -n 1)
+        LATEST_BUILD_TOOLS=$(sdkmanager --list | grep 'build-tools;' | cut -d';' -f2 | sed 's/^[ 	]*//;s/[ 	]*$//' | awk '{print $1}' | sort -V | tail -n 1)
         if [ -z "$LATEST_BUILD_TOOLS" ]; then
           echo "Could not determine latest build-tools version. Exiting."
           exit 1
