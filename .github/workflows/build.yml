@@ -18,12 +18,31 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y python3-pip openjdk-11-jdk git unzip
         pip install buildozer cython
+        export ANDROID_SDK_ROOT=${HOME}/android-sdk
+        mkdir -p ${ANDROID_SDK_ROOT}
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip -q cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools-tmp # Unzip to a temporary directory
+        # Move the contents of the unzipped 'cmdline-tools' directory to $ANDROID_SDK_ROOT/cmdline-tools/latest
+        # The zip typically has a top-level directory named 'cmdline-tools'.
+        mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest
+        mv ${ANDROID_SDK_ROOT}/cmdline-tools-tmp/cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/
+        rm -rf ${ANDROID_SDK_ROOT}/cmdline-tools-tmp cmdline-tools.zip
+        echo "PATH=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}" >> $GITHUB_ENV
+        echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV # ANDROID_HOME is often used as well
+        # Pre-install platform-tools using sdkmanager, this often helps with licenses too
+        # Buildozer uses a specific NDK version, so don't install it globally here unless necessary.
+        yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "platform-tools"
 
     - name: Accept Android licenses
       run: |
-        mkdir -p ~/.android/licenses
-        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ~/.android/licenses/android-sdk-license
-        echo "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.android/licenses/android-sdk-preview-license
+        mkdir -p ${ANDROID_SDK_ROOT}/licenses ~/.android/licenses
+        # Add known licenses (these might be redundant if 'sdkmanager --licenses' works, but harmless)
+        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > ${ANDROID_SDK_ROOT}/licenses/android-sdk-license
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" > ${ANDROID_SDK_ROOT}/licenses/android-sdk-preview-license
+        echo "d975f751698a77b662f1254ddbeed3901e976f5a" > ${ANDROID_SDK_ROOT}/licenses/android-sdk-arm-dbt-license
+        echo "fd6b01a7e7a4e4f37591efa21e1a51710ac17ef4" > ${ANDROID_SDK_ROOT}/licenses/intel-android-extra-license
+        # Attempt to accept all remaining licenses
+        yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --licenses
 
     - name: Build APK
       run: |
