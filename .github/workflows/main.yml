@@ -1,6 +1,7 @@
 name: Build APK
 
 on:
+  workflow_dispatch:  # ✅ permet de lancer manuellement depuis l'interface GitHub
   push:
     branches:
       - main
