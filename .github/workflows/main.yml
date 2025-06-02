@@ -40,8 +40,14 @@ jobs:
     - name: Install SDK packages & accept licenses
       run: |
         export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-        yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
+        yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
         sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+    - name: Verify Build Tools Installation
+      run: |
+        export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/build-tools/33.0.2:$PATH"
+        which aidl
+        aidl --version
 
     - name: Build APK with Buildozer
       run: |
