@@ -1,86 +1,179 @@
 #:kivy 2.1.0
 
+# Define some base colors for easy reuse
+#:set color_background (0.15, 0.15, 0.15, 1)
+#:set color_primary_text (0.9, 0.9, 0.9, 1)
+#:set color_accent (0.2, 0.6, 0.8, 1)
+#:set color_secondary_background (0.2, 0.2, 0.2, 1)
+#:set color_input_background (0.25, 0.25, 0.25, 1)
+#:set color_button_normal (0.3, 0.3, 0.3, 1)
+#:set color_button_down (0.2, 0.5, 0.7, 1) # Similar to accent for pressed state
+
+<Label>: # Default label styling
+    color: color_primary_text
+    # shorten: True # Apply judiciously where needed
+    # shorten_from: 'right'
+
+<Button>: # Default button styling
+    background_color: color_button_normal
+    background_normal: '' # Important to allow background_color to work
+    background_down: ''   # For pressed state color
+    color: color_primary_text
+    # border: (16, 16, 16, 16) # For rounded buttons if using an image
+    # For now, simple flat buttons
+    # Add padding inside the button
+    padding: [10, 5]
+
+
+<ToggleButton>:
+    background_color: color_button_normal
+    background_normal: ''
+    background_down: '' # Will use root.background_color_down when state is 'down'
+    color: color_primary_text
+    # Specific styling for 'down' state (e.g., when favorited)
+    # This can be done by changing background_color when state is 'down'
+    # For example, in Python or via a rule:
+    # background_color: color_accent if self.state == 'down' else color_button_normal
+
+<TextInput>:
+    background_color: color_input_background
+    color: color_primary_text
+    padding: [10, 10] # Padding inside text input
+    hint_text_color: (0.5, 0.5, 0.5, 1)
+    # cursor_color: color_accent # Not available in all Kivy versions/renderers this way
+
+<Slider>:
+    thumb_color: color_accent # Kivy 2.2+
+    value_track: True
+    value_track_color: color_accent
+    # For older Kivy, slider styling is more limited without custom images
+
+<ScrollView>:
+    bar_color: color_accent
+    bar_inactive_color: color_secondary_background
+    bar_width: '8dp'
+    scroll_type: ['bars', 'content'] # Show bars and allow content drag scrolling
+
+
 <StationListItem>:
     orientation: 'horizontal'
     size_hint_y: None
-    height: '48dp'
-    padding: [5, 5]
+    height: '56dp' # Slightly taller for better touch
+    padding: [10, 5] # Increased padding
     spacing: 10
+    # Add a subtle background to each item to distinguish from main background
+    canvas.before:
+        Color:
+            rgba: color_secondary_background # (0.2, 0.2, 0.2, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
     Label:
         text: root.station_name
-        size_hint_x: 0.6 # Adjusted to make space for Play button
+        size_hint_x: 0.6
         halign: 'left'
         valign: 'middle'
         text_size: self.width, None
         shorten: True
         shorten_from: 'right'
+        font_size: '15sp' # Slightly larger for readability
 
-    Button: # Play Button for each station
-        text: "Play"
+    Button: # Play Button
+        text: "Play" # Later "►" or icon
         size_hint_x: 0.2
+        font_size: '14sp'
+        background_color: (0.3, 0.7, 0.3, 1) # Greenish for Play
         on_press: root.on_play_button_press()
 
     ToggleButton: # Favorite Button
         id: fav_button
-        text: 'Fav'
-        state: 'down' if root.is_currently_favorite else 'normal'
-        size_hint_x: 0.2 # Adjusted
+        # Use text symbols for fav status for now
+        text: "★" if root.is_currently_favorite else "☆"
+        font_size: '18sp' # Make star bigger
+        # Change color based on state
+        color: color_accent if root.is_currently_favorite else color_primary_text
+        background_color: 'transparent' # Make background of fav button transparent to show item bg
+                                       # This requires background_normal and _down to be empty string.
+        size_hint_x: 0.2
         on_press: root.on_favorite_button_press(self)
+
 
 <MainLayout>:
     orientation: 'vertical'
+    canvas.before:
+        Color:
+            rgba: color_background # Main background for the whole app
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     radio_list_layout: radio_list_content_layout
     custom_station_name_input: custom_name_input
     custom_station_url_input: custom_url_input
     add_custom_status_label: status_label_custom_add
-
-    # Link player control widgets
     currently_playing_label: playing_label
     volume_slider: vol_slider
-
 
     # --- Player Control Section ---
     BoxLayout:
         size_hint_y: None
-        height: self.minimum_height # Make this section compact
-        padding: [10, 5]
+        height: self.minimum_height
+        padding: [10, 10] # Increased padding
         spacing: 10
-        orientation: 'vertical' # Stack player controls vertically for now
+        orientation: 'vertical'
+        background_color: color_secondary_background # Distinct background for player controls
+        canvas.before:
+            Color:
+                rgba: self.background_color
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
         Label:
             id: playing_label
-            text: root.last_played_station_name # Bind to property in MainLayout
+            text: root.last_played_station_name
             size_hint_y: None
             height: '30dp'
             font_size: '14sp'
+            color: color_primary_text # Ensure it's visible on secondary_background
 
         Button:
-            text: "Stop All Audio"
+            text: "Stop" # Later "■" or icon
             size_hint_y: None
             height: '40dp'
+            font_size: '14sp'
+            background_color: (0.8, 0.3, 0.3, 1) # Reddish for Stop
             on_press: root.stop_audio()
 
-        BoxLayout: # Horizontal layout for volume label and slider
+        BoxLayout:
             size_hint_y: None
             height: '30dp'
             Label:
                 text: "Volume:"
-                size_hint_x: 0.2
+                size_hint_x: 0.3 # Give more space to slider
+                font_size: '14sp'
             Slider:
                 id: vol_slider
                 min: 0.0
                 max: 1.0
-                value: 1.0 # Default volume
-                size_hint_x: 0.8
+                value: 1.0
+                size_hint_x: 0.7
                 on_value: root.on_volume_change(self, self.value)
-
 
     Label: # Title for station list
         text: "Radio Stations"
         size_hint_y: None
-        height: '48dp'
-        font_size: '20sp'
+        height: '52dp' # Taller title bar
+        font_size: '22sp' # Larger title font
+        bold: True
+        # Add a background to the title bar
+        canvas.before:
+            Color:
+                rgba: color_secondary_background # (0.25, 0.25, 0.25, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
     ScrollView:
         size_hint: (1, 1)
@@ -88,33 +181,43 @@
         GridLayout:
             id: radio_list_content_layout
             cols: 1
-            spacing: '2dp'
+            spacing: '3dp' # Spacing between StationListItems
+            padding: [0, 5, 0, 5] # Padding top/bottom for the list itself
             size_hint_y: None
             bind: minimum_height=self.setter('height')
 
-    # --- Section for Adding Custom Radio (from previous step) ---
+    # --- Section for Adding Custom Radio ---
     BoxLayout:
         orientation: 'vertical'
         size_hint_y: None
         height: self.minimum_height
-        padding: [10, 10, 10, 10]
-        spacing: 5
+        padding: [10, 15] # More vertical padding
+        spacing: 8 # Increased spacing
+        # Give this section a distinct background too
+        canvas.before:
+            Color:
+                rgba: color_secondary_background
+            Rectangle:
+                pos: self.pos
+                size: self.size
         Label:
             text: "Add Custom Radio Station"
-            size_hint_y: None; height: '30dp'; font_size: '16sp'
+            size_hint_y: None; height: '30dp'; font_size: '18sp'; bold:True
         TextInput:
             id: custom_name_input
             hint_text: "Station Name"
-            size_hint_y: None; height: '40dp'; multiline: False
+            size_hint_y: None; height: '44dp'; font_size: '15sp' # Taller input
         TextInput:
             id: custom_url_input
             hint_text: "Station URL (stream link)"
-            size_hint_y: None; height: '40dp'; multiline: False
+            size_hint_y: None; height: '44dp'; font_size: '15sp'
         Button:
             text: "Add Custom Radio"
-            size_hint_y: None; height: '48dp'
+            size_hint_y: None; height: '48dp'; font_size: '15sp'
+            background_color: color_accent # Use accent color for this primary action
             on_press: root.add_custom_station_ui()
         Label:
             id: status_label_custom_add
             text: ""
-            size_hint_y: None; height: '30dp'
+            size_hint_y: None; height: '30dp'; font_size: '14sp'
+            color: color_accent # Use accent color for status messages for visibility
