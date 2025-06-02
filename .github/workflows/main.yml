@@ -12,11 +12,7 @@ jobs:
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
-      PATH: |
-        ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:
-        ${{ github.workspace }}/android-sdk/platform-tools:
-        ${{ github.workspace }}/android-sdk/emulator:
-        ${{ env.PATH }}
+      PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/emulator:${PATH}
 
     steps:
     - name: 📥 Checkout repository
