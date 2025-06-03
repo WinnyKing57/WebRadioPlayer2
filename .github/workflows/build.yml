@@ -11,6 +11,11 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
+      - name: ⚙️ Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool libffi-dev
+
       - name: 🐍 Set up Python 3.10
         uses: actions/setup-python@v4
         with:
@@ -25,12 +30,8 @@ jobs:
       - name: 📲 Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          # Utilisation d'un style folded (>) pour convertir les retours à la ligne en espaces,
-          # ce qui fournit à sdkmanager une liste de packages séparée par des espaces.
-          packages: >
-            platform-tools
-            platforms;android-34
-            build-tools;34.0.0
+          packages: > 
+            platform-tools platforms;android-34 build-tools;34.0.0
 
       - name: 🚀 Cache pip dependencies
         uses: actions/cache@v3
