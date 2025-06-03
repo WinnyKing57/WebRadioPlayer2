@@ -1,5 +1,5 @@
 [app]
-# Informations basiques de l’application
+# Informations basiques de l'application
 title = WebRadioPy
 package.name = webradiopro
 package.domain = org.winny
@@ -9,7 +9,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,json,mp3,wav,ttf
 source.exclude_dirs = tests,bin,.buildozer,__pycache__
 
-# Version dynamique depuis main.py (doit contenir __version__ = 'x.y.z')
+# Version dynamique depuis main.py
 version.regex = __version__ = ['"](.*)['"]
 version.filename = %(source.dir)s/main.py
 
@@ -32,19 +32,35 @@ presplash.filename = assets/presplash.png
 android.api = 34
 android.minapi = 23
 android.archs = armeabi-v7a, arm64-v8a
+android.ndk_path = /home/runner/.android/ndk/25.2.9519653
 
-# Permissions nécessaires
+# Permissions
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, WAKE_LOCK, FOREGROUND_SERVICE
 
-# Dépendances Python (versions fixes pour plus de stabilité)
-requirements = python3==3.10.12, kivy==2.3.0, requests==2.31.0, plyer==2.1.0, android, openssl, pyjnius, audiostream, ffpyplayer, libffi, numpy, setuptools
+# Dépendances Python
+requirements = 
+    python3==3.10.12,
+    kivy==2.3.0,
+    requests==2.31.0,
+    plyer==2.1.0,
+    android,
+    openssl,
+    pyjnius,
+    audiostream,
+    ffpyplayer @ git+https://github.com/matham/ffpyplayer.git@master,
+    libffi,
+    numpy,
+    setuptools,
+    cython==0.29.36
 
-# Ne pas utiliser d'interface graphique pour la compilation sur CI
-android.logcat_filters = *:S python:D
-
-# SDK license acceptance automatique
+# Options de build
+p4a.branch = develop
+android.enable_androidx = True
+android.release_artifact = .apk
 android.accept_sdk_license = True
+android.logcat_filters = *:S python:D
 
 [buildozer]
 log_level = 2
 warn_on_root = 1
+ci_build = True
