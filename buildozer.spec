@@ -31,13 +31,13 @@ presplash.filename = assets/presplash.png
 # Android specifics
 android.api = 34
 android.minapi = 23
-android.arch = arm64-v8a
+android.archs = armeabi-v7a, arm64-v8a
 
 # Permissions nécessaires
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, WAKE_LOCK, FOREGROUND_SERVICE
 
 # Dépendances Python (versions fixes pour plus de stabilité)
-requirements = python3==3.10.12, kivy==2.3.0, requests==2.31.0, plyer==2.1.0, android, openssl, pyjnius, audiostream, ffpyplayer
+requirements = python3==3.10.12, kivy==2.3.0, requests==2.31.0, plyer==2.1.0, android, openssl, pyjnius, audiostream, ffpyplayer, libffi, numpy, setuptools
 
 # Ne pas utiliser d'interface graphique pour la compilation sur CI
 android.logcat_filters = *:S python:D
@@ -46,5 +46,5 @@ android.logcat_filters = *:S python:D
 android.accept_sdk_license = True
 
 [buildozer]
-log_level = 2
+log_level = 1
 warn_on_root = 1
