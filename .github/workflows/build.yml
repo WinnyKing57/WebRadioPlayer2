@@ -8,38 +8,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout code
+      - name: "📥 Checkout code"
         uses: actions/checkout@v3
 
-      - name: ⚙️ Install system dependencies
+      - name: "⚙️ Install system dependencies"
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool pkg-config libffi-dev \
             libssl-dev libavcodec-dev libavformat-dev libavdevice-dev \
             libavutil-dev zlib1g-dev
 
-      - name: 🔄 Update Autoconf macros
+      - name: "🔄 Update Autoconf macros"
         run: |
           autoreconf -fi || true
 
-      - name: 🐍 Set up Python 3.10
+      - name: "🐍 Set up Python 3.10"
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: ☕ Set up JDK 17
+      - name: "☕ Set up JDK 17"
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 📲 Set up Android SDK
+      - name: "📲 Set up Android SDK"
         uses: android-actions/setup-android@v3
         with:
           packages: >
             platform-tools platforms;android-34 build-tools;34.0.0
 
-      - name: 🚀 Cache pip dependencies
+      - name: "🚀 Cache pip dependencies"
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
@@ -47,12 +47,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: 📦 Install Python dependencies
+      - name: "📦 Install Python dependencies"
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade buildozer cython python-for-android
 
-      - name: 🚀 Cache Buildozer dependencies
+      - name: "🚀 Cache Buildozer dependencies"
         uses: actions/cache@v3
         with:
           path: ~/.buildozer
@@ -60,37 +60,36 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: 🔄 Clean previous builds (ignore errors if folder missing)
+      - name: "🔄 Clean previous builds (ignore errors if folders are missing)"
         run: |
           rm -rf ~/.buildozer || true
           rm -rf ~/.local/share/python-for-android || true
           rm -rf ~/.local/lib/python3.10/site-packages/pythonforandroid || true
           buildozer android clean || true
 
-      - name: 🔄 Force reinstallation of python-for-android
+      - name: "🔄 Force reinstallation of python-for-android"
         run: |
           pip uninstall python-for-android -y
           pip install python-for-android
 
-      - name: 🛠 Patch libffi configuration
+      - name: "🛠 Patch libffi configuration"
         run: |
-          # Cherche tous les fichiers configure.ac sous .buildozer en lien avec libffi
+          echo "Patching libffi configure.ac files..."
           find .buildozer -type f -name "configure.ac" | grep -i libffi | while read file; do
             echo "Patching file: $file";
-            # Insère la directive en première ligne
             sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' "$file";
           done || true
 
-      - name: 🔨 Build APK
+      - name: "🔨 Build APK"
         run: |
           buildozer -v android debug
           ls -la bin/
 
-      - name: 🗜️ Archive APK as ZIP (fallback)
+      - name: "🗜 Archive APK as ZIP (fallback)"
         run: |
           zip -j webradio-apk.zip bin/*.apk
 
-      - name: ☁️ Upload APK Artifact
+      - name: "☁️ Upload APK Artifact"
         uses: actions/upload-artifact@v4
         with:
           name: webradio-apk
