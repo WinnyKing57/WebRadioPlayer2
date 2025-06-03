@@ -14,9 +14,13 @@ jobs:
       - name: ⚙️ Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool libffi-dev \
+          sudo apt-get install -y autoconf automake libtool pkg-config libffi-dev \
             libssl-dev libavcodec-dev libavformat-dev libavdevice-dev \
             libavutil-dev zlib1g-dev
+
+      - name: 🔄 Update Autoconf macros
+        run: |
+          autoreconf -fi || true
 
       - name: 🐍 Set up Python 3.10
         uses: actions/setup-python@v4
@@ -58,9 +62,9 @@ jobs:
 
       - name: 🔄 Clean previous builds (ignore errors if folder missing)
         run: |
-          rm -rf ~/.buildozer
-          rm -rf ~/.local/share/python-for-android
-          rm -rf ~/.local/lib/python3.10/site-packages/pythonforandroid
+          rm -rf ~/.buildozer || true
+          rm -rf ~/.local/share/python-for-android || true
+          rm -rf ~/.local/lib/python3.10/site-packages/pythonforandroid || true
           buildozer android clean || true
 
       - name: 🔄 Force reinstallation of python-for-android
