@@ -32,7 +32,7 @@ jobs:
       - name: 📲 Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: > 
+          packages: >
             platform-tools platforms;android-34 build-tools;34.0.0
 
       - name: 🚀 Cache pip dependencies
@@ -56,12 +56,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: 🔄 Clean previous builds
+      - name: 🔄 Clean previous builds (ignore errors if folder missing)
         run: |
           rm -rf ~/.buildozer
           rm -rf ~/.local/share/python-for-android
           rm -rf ~/.local/lib/python3.10/site-packages/pythonforandroid
-          buildozer android clean
+          buildozer android clean || true
 
       - name: 🔄 Force reinstallation of python-for-android
         run: |
