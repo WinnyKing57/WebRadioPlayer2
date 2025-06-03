@@ -72,6 +72,13 @@ jobs:
           pip uninstall python-for-android -y
           pip install python-for-android
 
+      - name: 🛠 Patch libffi configuration
+        run: |
+          # Chercher tous les configure.ac dans les dossiers libffi et insérer m4_pattern_allow au début
+          find .buildozer -type f -name "configure.ac" | grep libffi | while read file; do
+            sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' "$file";
+          done
+
       - name: 🔨 Build APK
         run: |
           buildozer -v android debug
