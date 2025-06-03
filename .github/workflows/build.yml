@@ -16,7 +16,7 @@ jobs:
 
       - name: "⚙️ Install system dependencies"
         run: |
-          sudo apt-get update -qq
+          sudo apt-get update
           sudo apt-get install -y \
             autoconf automake libtool pkg-config \
             libffi-dev libssl-dev zlib1g-dev zip \
@@ -34,12 +34,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: "📲 Set up Android SDK and tools"
+      - name: "📲 Set up Android SDK + Tools"
         uses: android-actions/setup-android@v2
         with:
-          cmdline-tools: "11.0"
+          cmdline-tools: "latest"
+          tools: true
           packages: |
-            tools
             platform-tools
             platforms;android-35
             platforms;android-34
@@ -50,9 +50,9 @@ jobs:
           custom-channels: |
             https://dl.google.com/android/repository/repository2-1.xml
 
-      - name: "✅ Accept Android SDK licenses"
+      - name: "✅ Accept licenses"
         run: |
-          yes | "${ANDROID_HOME}/cmdline-tools/11.0/bin/sdkmanager" --licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           mkdir -p ~/.android
           echo '### User Sources for Android SDK Manager' > ~/.android/repositories.cfg
 
@@ -62,35 +62,22 @@ jobs:
           pip install --upgrade buildozer python-for-android
           pip install cython==0.29.36
 
-      - name: "🚀 Cache Buildozer et SDK"
+      - name: "🚀 Cache Buildozer"
         uses: actions/cache@v3
         with:
           path: |
             ~/.buildozer
             ~/.android
             ~/.gradle
-          key: ${{ runner.os }}-buildozer-v2-${{ hashFiles('buildozer.spec') }}
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
-            ${{ runner.os }}-buildozer-v2-
+            ${{ runner.os }}-buildozer-
 
       - name: "🔧 Patch environment"
         run: |
-          echo "ANDROID_SDK_ROOT=${ANDROID_HOME}" >> $GITHUB_ENV
-          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/26.3.11579264" >> $GITHUB_ENV
-          echo "PATH=${PATH}:${ANDROID_HOME}/platform-tools:~/.local/bin" >> $GITHUB_ENV
-
-      - name: "🐍 Force python-for-android clone (workaround)"
-        run: |
-          mkdir -p .buildozer/android/platform
-          rm -rf .buildozer/android/platform/python-for-android
-          git clone https://github.com/kivy/python-for-android.git .buildozer/android/platform/python-for-android
-
-      - name: "🔍 Check buildozer.spec exists"
-        run: |
-          if [ ! -f buildozer.spec ]; then
-            echo "❌ buildozer.spec not found, aborting."
-            exit 1
-          fi
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_HOME/platform-tools:~/.local/bin" >> $GITHUB_ENV
 
       - name: "🔨 Build APK"
         run: |
@@ -112,7 +99,7 @@ jobs:
         run: |
           mkdir -p artifacts
           cp bin/*.apk artifacts/
-          zip -j artifacts/webradio-apk.zip artifacts/*.apk
+          zip -j artifacts/webradio-apk.zip bin/*.apk
 
       - name: "☁️ Upload APK"
         if: success()
