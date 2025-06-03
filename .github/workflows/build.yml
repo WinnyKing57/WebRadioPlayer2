@@ -4,138 +4,75 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3-pip openjdk-11-jdk git unzip libtool automake autoconf pkg-config m4
-        echo "Verifying autotools installations and m4 files..."
-        libtool --version || echo "libtool not found or version error"
-        autoconf --version || echo "autoconf not found or version error"
-        automake --version || echo "automake not found or version error"
-        pkg-config --version || echo "pkg-config not found or version error"
-        m4 --version || echo "m4 not found or version error"
-        
-        echo "Listing contents of /usr/share/aclocal/ to check for libtool.m4..."
-        ls -la /usr/share/aclocal/ || echo "/usr/share/aclocal/ not found or cannot be listed"
-        if [ -f "/usr/share/aclocal/libtool.m4" ]; then
-          echo "libtool.m4 found in /usr/share/aclocal/"
-        else
-          echo "WARNING: libtool.m4 NOT found in /usr/share/aclocal/"
-        fi
-        # Attempt to update aclocal's cache if possible (may require specific permissions or context)
-        # As a general step, just ensure it's callable.
-        aclocal --version || echo "aclocal not found or version error"
-        echo "Autotools verification commands complete."
-        echo "Setting autotools environment variables..."
-        export ACLOCAL_FLAGS="-I /usr/share/aclocal"
-        export LIBTOOLIZE="libtoolize"
-        export ACLOCAL="aclocal"
-        export AUTOCONF="autoconf"
-        export AUTOMAKE="automake"
-        # Make these available to subsequent steps/commands in the job
-        echo "ACLOCAL_FLAGS=${ACLOCAL_FLAGS}" >> $GITHUB_ENV
-        echo "LIBTOOLIZE=${LIBTOOLIZE}" >> $GITHUB_ENV
-        echo "ACLOCAL=${ACLOCAL}" >> $GITHUB_ENV
-        echo "AUTOCONF=${AUTOCONF}" >> $GITHUB_ENV
-        echo "AUTOMAKE=${AUTOMAKE}" >> $GITHUB_ENV
-        echo "Autotools environment variables set."
-        pip install buildozer cython
+      - name: 📦 Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip openjdk-11-jdk git unzip wget zip
+          pip install --upgrade pip
+          pip install buildozer cython
 
-        # Set SDK root path (Buildozer's default)
-        export ANDROID_SDK_ROOT=${HOME}/.buildozer/android/platform/android-sdk
-        mkdir -p ${ANDROID_SDK_ROOT}
-        echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV
-        echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> $GITHUB_ENV # Also set ANDROID_HOME
+      - name: 📲 Install Android SDK & Accept Licenses
+        env:
+          ANDROID_SDK_ROOT: $HOME/android-sdk
+        run: |
+          set -e
 
-        # Download and install Android SDK command-line tools
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-        mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools-tmp # Temporary directory for unzipping
-        unzip -q cmdline-tools.zip -d ${ANDROID_SDK_ROOT}/cmdline-tools-tmp
-        rm cmdline-tools.zip
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
 
-        # The zip typically creates a 'cmdline-tools' directory inside cmdline-tools-tmp.
-        # We need to move its contents (bin, lib, etc.) to mimic the old SDK structure
-        # where sdkmanager was in $SDK_ROOT/tools/bin/sdkmanager.
-        # The 'cmdline-tools' unzipped folder often contains subfolders like 'bin', 'lib'.
-        # We are taking the contents of the unzipped 'cmdline-tools' (e.g. cmdline-tools-tmp/cmdline-tools/*)
-        # and placing them into $ANDROID_SDK_ROOT/tools/
-        # Specifically, files from cmdline-tools/bin -> $ANDROID_SDK_ROOT/tools/bin
-        # and cmdline-tools/lib -> $ANDROID_SDK_ROOT/tools/lib
+          # Télécharger et extraire les cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools
 
-        # Create the target $ANDROID_SDK_ROOT/tools directory
-        mkdir -p ${ANDROID_SDK_ROOT}/tools
+          # Corriger la structure des dossiers cmdline-tools
+          if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then
+            mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
+          else
+            mv $ANDROID_SDK_ROOT/cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest/
+          fi
 
-        # Move the contents of the unzipped 'cmdline-tools' directory (e.g., cmdline-tools/bin, cmdline-tools/lib)
-        # into the $ANDROID_SDK_ROOT/tools directory.
-        # The structure within commandlinetools-linux-9477386_latest.zip is a single 'cmdline-tools' folder.
-        # So, after unzipping to cmdline-tools-tmp, we have cmdline-tools-tmp/cmdline-tools/
-        mv ${ANDROID_SDK_ROOT}/cmdline-tools-tmp/cmdline-tools/* ${ANDROID_SDK_ROOT}/tools/
-        rm -rf ${ANDROID_SDK_ROOT}/cmdline-tools-tmp
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
 
-        # Ensure the sdkmanager is executable
-        chmod +x ${ANDROID_SDK_ROOT}/tools/bin/sdkmanager || true # Allow to fail if not found, but should be there
+          # Ajouter les licences nécessaires pour éviter les blocages
+          mkdir -p $ANDROID_SDK_ROOT/licenses
+          echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_SDK_ROOT/licenses/android-sdk-preview-license
 
-        # Add $ANDROID_SDK_ROOT/tools/bin to PATH for this step and subsequent steps
-        export PATH=${ANDROID_SDK_ROOT}/tools/bin:${PATH}
-        echo "PATH=${PATH}" >> $GITHUB_ENV
+          # Installer les composants Android essentiels
+          sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;34.0.0" \
+            "ndk;23.1.7779620"
 
-        echo "Android SDK command-line tools installed and configured for legacy path."
-        echo "SDK Manager should be at: ${ANDROID_SDK_ROOT}/tools/bin/sdkmanager"
-        ls -la ${ANDROID_SDK_ROOT}/tools/bin/ || true # List contents for verification
+          echo "✅ Liste des build-tools installés :"
+          ls -l $ANDROID_SDK_ROOT/build-tools/
 
-    - name: Accept Android licenses
-      run: |
-        # ANDROID_SDK_ROOT is now ${HOME}/.buildozer/android/platform/android-sdk
-        # Create license directories in common locations.
-        mkdir -p ${ANDROID_SDK_ROOT}/licenses
-        mkdir -p ${HOME}/.android/licenses
+      - name: 🔨 Build APK
+        env:
+          ANDROID_SDK_ROOT: $HOME/android-sdk
+        run: |
+          buildozer -v android debug
+          ls -la bin/
 
-        # Pre-accept common licenses by writing their hashes to files.
-        # Buildozer's internal SDK manager might pick these up.
-        LICENSE_DIR_1=${ANDROID_SDK_ROOT}/licenses
-        LICENSE_DIR_2=${HOME}/.android/licenses
+      - name: 🗜️ Archive APK as ZIP (fallback)
+        run: |
+          zip -j webradio-apk.zip bin/*.apk
 
-        echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" | tee ${LICENSE_DIR_1}/android-sdk-license ${LICENSE_DIR_2}/android-sdk-license > /dev/null
-        echo "84831b9409646a918e30573bab4c9c91346d8abd" | tee ${LICENSE_DIR_1}/android-sdk-preview-license ${LICENSE_DIR_2}/android-sdk-preview-license > /dev/null
-        echo "d975f751698a77b662f1254ddbeed3901e976f5a" | tee ${LICENSE_DIR_1}/android-sdk-arm-dbt-license ${LICENSE_DIR_2}/android-sdk-arm-dbt-license > /dev/null
-        echo "fd6b01a7e7a4e4f37591efa21e1a51710ac17ef4" | tee ${LICENSE_DIR_1}/intel-android-extra-license ${LICENSE_DIR_2}/intel-android-extra-license > /dev/null
-        # Add the hash that was specifically problematic for build-tools;36.0.0, just in case.
-        # The problematic hash for "Android SDK Build-Tools 36" if known, could be added.
-        # However, since we don't have a specific hash for "build-tools;36.0.0" from the logs,
-        # we'll rely on the `buildozer android update -p` step to handle this.
-        # For now, the generic ones are included.
-
-        echo "Pre-accepted some common Android SDK licenses."
-
-    - name: Build APK
-      run: |
-        echo "Cleaning Buildozer caches and previous build artifacts..."
-        rm -rf .buildozer/android/platform/build-* 
-        rm -rf .buildozer/android/platform/dist-* 
-        rm -rf .buildozer/android/packages/* 
-        rm -rf .buildozer/android/app/ # This might be excessive, but ensures a clean state for app sources if they are copied here
-        # Alternatively, a more targeted clean for packages:
-        # rm -rf .buildozer/android/platform/build-*/{build,dists,other_stuff_related_to_recipes}
-        # rm -rf .buildozer/android/packages/libffi # Example if libffi is suspected
-        # For now, the broader rm -rf lines are used for a more thorough clean.
-
-        echo "Caches cleaned."
-
-        yes | buildozer android update -p
-        buildozer -v android debug
-        ls -la bin/
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: webradio-apk
-        path: bin/*.apk
+      - name: ☁️ Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webradio-apk
+          path: |
+            bin/*.apk
+            webradio-apk.zip
