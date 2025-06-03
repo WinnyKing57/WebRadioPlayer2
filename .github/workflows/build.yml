@@ -19,8 +19,7 @@ jobs:
             libavutil-dev zlib1g-dev
 
       - name: "🔄 Update Autoconf macros"
-        run: |
-          autoreconf -fi || true
+        run: autoreconf -fi || true
 
       - name: "🐍 Set up Python 3.10"
         uses: actions/setup-python@v4
@@ -37,7 +36,13 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: >
-            platform-tools platforms;android-34 build-tools;34.0.0
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
+            build-tools;33.0.0
+
+      - name: "✅ Accept Android SDK licenses"
+        run: yes | sdkmanager --licenses
 
       - name: "🚀 Cache pip dependencies"
         uses: actions/cache@v3
@@ -60,12 +65,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: "🔄 Clean previous builds (ignore errors if folders are missing)"
-        run: |
-          rm -rf ~/.buildozer || true
-          rm -rf ~/.local/share/python-for-android || true
-          rm -rf ~/.local/lib/python3.10/site-packages/pythonforandroid || true
-          buildozer android clean || true
+      # ❌ Supprimée : suppression destructrice de ~/.buildozer
 
       - name: "🔄 Force reinstallation of python-for-android"
         run: |
@@ -87,7 +87,7 @@ jobs:
 
       - name: "🗜 Archive APK as ZIP (fallback)"
         run: |
-          zip -j webradio-apk.zip bin/*.apk
+          zip -j webradio-apk.zip bin/*.apk || true
 
       - name: "☁️ Upload APK Artifact"
         uses: actions/upload-artifact@v4
