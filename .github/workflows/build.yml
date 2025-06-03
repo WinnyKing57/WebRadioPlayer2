@@ -55,24 +55,34 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: "🔨 First build attempt"
-        id: build_attempt
+      - name: "🔨 Run initial Buildozer to trigger extraction"
         continue-on-error: true
         run: |
-          buildozer -v android debug
+          buildozer android debug
 
-      - name: "📦 Check APK output"
+      - name: "🔧 Patch libffi before real build"
         run: |
-          echo "APK files in bin/:"
+          echo "⏳ Waiting for libffi to be extracted..."
+          while ! find .buildozer/android/platform/build-* -name "configure.ac" 2>/dev/null | grep -q libffi; do
+            sleep 2
+          done
+
+          echo "✅ Found libffi configure.ac. Patching..."
+          find .buildozer/android/platform/build-* -type f -name "configure.ac" -exec grep -l LT_SYS_SYMBOL_USCORE {} \; | while read file; do
+            echo "🔧 Patching $file"
+            sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' "$file"
+          done
+
+      - name: "🔨 Final Build APK"
+        run: |
+          buildozer -v android debug
           ls -la bin/
 
       - name: "🗜 Archive APK"
-        if: success()
         run: |
           zip -j webradio-apk.zip bin/*.apk
 
       - name: "☁️ Upload APK Artifact"
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: webradio-apk
