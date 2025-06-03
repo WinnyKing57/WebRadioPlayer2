@@ -10,7 +10,7 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: 🐍 Set up Python 3.10
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
@@ -22,29 +22,29 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Cache Buildozer and Gradle
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.buildozer
-            ~/.gradle
-          key: ${{ runner.os }}-buildozer-gradle-${{ hashFiles('**/buildozer.spec') }}
-
       - name: 📲 Install Android SDK & Accept Licenses
         env:
           ANDROID_SDK_ROOT: $HOME/android-sdk
-          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
-          PATH: $HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH
         run: |
           set -e
+          # Réinitialiser PATH pour inclure les commandes de base système
+          export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
+
           mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
 
           if [ ! -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            echo "➡️ Téléchargement du SDK cmdline-tools..."
             wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O cmdline-tools.zip
             unzip -q cmdline-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools/temp
+
             mv $ANDROID_SDK_ROOT/cmdline-tools/temp/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
             rm -rf $ANDROID_SDK_ROOT/cmdline-tools/temp
           fi
+
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+
+          echo "✅ Cmdline-tools installés :"
+          ls -l $ANDROID_SDK_ROOT/cmdline-tools/latest/
 
           mkdir -p $ANDROID_SDK_ROOT/licenses
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
@@ -52,19 +52,20 @@ jobs:
 
           yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
 
+          echo "📦 Installation des composants Android..."
           sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
             "platform-tools" \
             "platforms;android-34" \
             "build-tools;34.0.0"
 
-          echo "Installed build-tools:"
+          echo "📁 Liste des build-tools installés :"
           ls -l $ANDROID_SDK_ROOT/build-tools/
 
       - name: 🔨 Build APK
         env:
           ANDROID_SDK_ROOT: $HOME/android-sdk
-          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
           PATH: $HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH
+          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
         run: |
           buildozer -v android debug
           ls -la bin/
