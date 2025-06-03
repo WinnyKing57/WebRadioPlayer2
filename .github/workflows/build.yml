@@ -37,6 +37,7 @@ jobs:
       - name: "📲 Set up Android SDK"
         uses: android-actions/setup-android@v3
         with:
+          cmdline-tools: "latest"
           packages: |
             platform-tools
             platforms;android-34
@@ -46,9 +47,13 @@ jobs:
             ndk;25.2.9519653
             cmake;3.22.1
 
+      - name: "🔧 Verify Android packages"
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed
+
       - name: "✅ Accept licenses"
         run: |
-          yes | sdkmanager --licenses || true
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           mkdir -p ~/.android
           echo '### User Sources for Android SDK Manager' > ~/.android/repositories.cfg
 
