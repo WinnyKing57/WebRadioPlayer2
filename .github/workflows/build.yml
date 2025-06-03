@@ -25,14 +25,12 @@ jobs:
       - name: 📲 Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
+          # Utilisation d'un style folded (>) pour convertir les retours à la ligne en espaces,
+          # ce qui fournit à sdkmanager une liste de packages séparée par des espaces.
+          packages: >
             platform-tools
             platforms;android-34
             build-tools;34.0.0
-          # Les options suivantes sont activées par défaut :
-          # cmdline-tools-version: 12266719
-          # accept-android-sdk-licenses: true
-          # log-accepted-android-sdk-licenses: true
 
       - name: 🚀 Cache pip dependencies
         uses: actions/cache@v3
