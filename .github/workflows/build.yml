@@ -17,7 +17,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool pkg-config libffi-dev \
             libssl-dev libavcodec-dev libavformat-dev libavdevice-dev \
-            libavutil-dev zlib1g-dev zip libsdl2-dev
+            libavutil-dev zlib1g-dev zip libsdl2-dev git
 
       - name: "🐍 Set up Python 3.10"
         uses: actions/setup-python@v4
@@ -36,58 +36,66 @@ jobs:
           packages: >
             platform-tools
             platforms;android-34
+            platforms;android-33
             build-tools;34.0.0
             build-tools;33.0.0
+            ndk;25.2.9519653
 
       - name: "✅ Accept Android SDK licenses"
         run: yes | sdkmanager --licenses
 
       - name: "📦 Install Python dependencies"
         run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade buildozer cython python-for-android
-          pip uninstall -y ffpyplayer
-          pip install git+https://github.com/matham/ffpyplayer.git
+          python -m pip install --upgrade pip setuptools wheel
+          pip install --upgrade buildozer cython==0.29.36 python-for-android
+          pip install git+https://github.com/matham/ffpyplayer.git@master
 
       - name: "🚀 Cache Buildozer"
         uses: actions/cache@v3
         with:
-          path: ~/.buildozer
+          path: |
+            ~/.buildozer
+            ~/.android
+            ~/.gradle
           key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: "🔨 Run initial Buildozer to trigger extraction"
-        continue-on-error: true
+      - name: "🔨 Run Buildozer"
         run: |
-          buildozer android debug
+          # Set environment variables
+          export PATH=$PATH:~/.local/bin
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
+          
+          # Clean previous builds
+          rm -rf .buildozer/android/platform/build-*/.gradle
+          
+          # Build with debug output
+          buildozer -v android debug 2>&1 | tee build.log
+          
+          # Save build log
+          echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
+          cat build.log >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-      - name: "🔧 Patch libffi before real build"
-        run: |
-          echo "⏳ Waiting for libffi to be extracted..."
-          while ! find .buildozer/android/platform/build-* -name "configure.ac" 2>/dev/null | grep -q libffi; do
-            sleep 2
-          done
-
-          echo "✅ Found libffi configure.ac. Patching..."
-          find .buildozer/android/platform/build-* -type f -name "configure.ac" -exec grep -l LT_SYS_SYMBOL_USCORE {} \; | while read file; do
-            echo "🔧 Patching $file"
-            sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' "$file"
-          done
-
-      - name: "🔨 Final Build APK"
-        run: |
-          buildozer -v android debug
-          ls -la bin/
+      - name: "📤 Upload build log"
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
 
       - name: "🗜 Archive APK"
+        if: success()
         run: |
-          zip -j webradio-apk.zip bin/*.apk
+          mkdir -p artifacts
+          cp bin/*.apk artifacts/
+          zip -j artifacts/webradio-apk.zip bin/*.apk
 
       - name: "☁️ Upload APK Artifact"
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: webradio-apk
-          path: |
-            bin/*.apk
-            webradio-apk.zip
+          path: artifacts/*
