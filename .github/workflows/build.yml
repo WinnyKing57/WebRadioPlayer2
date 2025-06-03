@@ -22,64 +22,48 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
-      - name: 📲 Install Android SDK & Accept Licenses
+      - name: 📲 Install Android SDK and tools
         env:
           ANDROID_SDK_ROOT: $HOME/android-sdk
         run: |
           set -e
-
-          # Réinitialiser le PATH pour garantir que nous pouvons utiliser les commandes système
-          export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
-
           mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+          
+          # Téléchargement correct du SDK
+          wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools
+          
+          # Déplacement correct : éviter cmdline-tools/cmdline-tools
+          mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
 
-          # Télécharger et installer cmdline-tools si nécessaire
-          if [ ! -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
-            wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O cmdline-tools.zip
-            unzip -q cmdline-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools/temp
-            mv $ANDROID_SDK_ROOT/cmdline-tools/temp/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
-            rm -rf $ANDROID_SDK_ROOT/cmdline-tools/temp
-          fi
+          # Configuration du PATH
+          echo "PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH" >> $GITHUB_ENV
 
-          # Vérification que sdkmanager est bien installé
-          ls -l $ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-
-          # Ajouter cmdline-tools au PATH
-          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
-          echo "PATH: $PATH"
-
-          # Accepter les licences Android SDK
+          # Licences
           mkdir -p $ANDROID_SDK_ROOT/licenses
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_SDK_ROOT/licenses/android-sdk-preview-license
 
-          # Accepter les licences et installer les outils nécessaires
-          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-
+      - name: 🧰 Install Android packages
+        env:
+          ANDROID_SDK_ROOT: $HOME/android-sdk
+          PATH: $HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH
+        run: |
+          sdkmanager --licenses
           sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
             "platform-tools" \
             "platforms;android-34" \
             "build-tools;34.0.0"
 
-          echo "Installed build-tools:"
-          ls -l $ANDROID_SDK_ROOT/build-tools/
-
       - name: 🔨 Build APK
         env:
           ANDROID_SDK_ROOT: $HOME/android-sdk
-          PATH: $HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
+          PATH: $HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH
         run: |
-          buildozer -v android debug
-          ls -la bin/
+          buildozer android debug
 
-      - name: 🗜️ Archive APK as ZIP (fallback)
-        run: |
-          zip -j webradio-apk.zip bin/*.apk
-
-      - name: ☁️ Upload APK Artifact
+      - name: ☁️ Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: webradio-apk
-          path: |
-            bin/*.apk
-            webradio-apk.zip
+          path: bin/*.apk
