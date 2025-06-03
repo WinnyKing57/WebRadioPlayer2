@@ -1,25 +1,26 @@
 name: Build APK
 
-on: [push, workflow_dispatch]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: 🐍 Set up Python
+      - name: 🐍 Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: ☕ Set up JDK 11
+      - name: ☕ Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: 📲 Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -28,11 +29,31 @@ jobs:
             platform-tools
             platforms;android-34
             build-tools;34.0.0
+          # Les options suivantes sont activées par défaut :
+          # cmdline-tools-version: 12266719
+          # accept-android-sdk-licenses: true
+          # log-accepted-android-sdk-licenses: true
+
+      - name: 🚀 Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: 📦 Install Python dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install buildozer cython
+
+      - name: 🚀 Cache Buildozer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
 
       - name: 🔨 Build APK
         run: |
