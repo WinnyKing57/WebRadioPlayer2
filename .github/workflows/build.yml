@@ -67,15 +67,23 @@ jobs:
           pip uninstall python-for-android -y
           pip install python-for-android
 
-      - name: "🛠 Patch libffi for LT_SYS_SYMBOL_USCORE"
-        run: |
-          echo "Patching libffi configure.ac files..."
-          find .buildozer -type f -name "configure.ac" -exec sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' {} \; || true
-
       - name: "🔨 Build APK"
         run: |
+          buildozer -v android debug || true
+
+      - name: "🛠 Final libffi patch after extraction"
+        if: failure()
+        run: |
+          echo "⚠️ Build failed. Trying to patch libffi macros..."
+          find .buildozer/android/platform/build-* -type f -name "configure.ac" -exec grep -l LT_SYS_SYMBOL_USCORE {} \; | while read file; do
+            echo "Patching $file"
+            sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' "$file"
+          done
+          echo "Retrying build..."
           buildozer -v android debug
-          ls -la bin/
+
+      - name: "📦 List built APKs"
+        run: ls -la bin/
 
       - name: "🗜 Archive APK as ZIP (fallback)"
         run: |
