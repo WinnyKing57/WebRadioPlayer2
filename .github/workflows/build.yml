@@ -28,11 +28,12 @@ jobs:
         run: |
           set -e
 
-          # Réinitialiser PATH pour retrouver les commandes systèmes
+          # Réinitialiser le PATH pour garantir que nous pouvons utiliser les commandes système
           export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
 
           mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
 
+          # Télécharger et installer cmdline-tools si nécessaire
           if [ ! -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
             wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O cmdline-tools.zip
             unzip -q cmdline-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools/temp
@@ -40,10 +41,19 @@ jobs:
             rm -rf $ANDROID_SDK_ROOT/cmdline-tools/temp
           fi
 
+          # Vérification que sdkmanager est bien installé
+          ls -l $ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+
+          # Ajouter cmdline-tools au PATH
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH
+          echo "PATH: $PATH"
+
+          # Accepter les licences Android SDK
           mkdir -p $ANDROID_SDK_ROOT/licenses
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_SDK_ROOT/licenses/android-sdk-preview-license
 
+          # Accepter les licences et installer les outils nécessaires
           yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
 
           sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
