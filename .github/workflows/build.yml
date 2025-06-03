@@ -74,10 +74,12 @@ jobs:
 
       - name: 🛠 Patch libffi configuration
         run: |
-          # Chercher tous les configure.ac dans les dossiers libffi et insérer m4_pattern_allow au début
-          find .buildozer -type f -name "configure.ac" | grep libffi | while read file; do
+          # Cherche tous les fichiers configure.ac sous .buildozer en lien avec libffi
+          find .buildozer -type f -name "configure.ac" | grep -i libffi | while read file; do
+            echo "Patching file: $file";
+            # Insère la directive en première ligne
             sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' "$file";
-          done
+          done || true
 
       - name: 🔨 Build APK
         run: |
