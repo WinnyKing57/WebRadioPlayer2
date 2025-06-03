@@ -60,7 +60,13 @@ jobs:
         run: |
           rm -rf ~/.buildozer
           rm -rf ~/.local/share/python-for-android
+          rm -rf ~/.local/lib/python3.10/site-packages/pythonforandroid
           buildozer android clean
+
+      - name: 🔄 Force reinstallation of python-for-android
+        run: |
+          pip uninstall python-for-android -y
+          pip install python-for-android
 
       - name: 🔨 Build APK
         run: |
