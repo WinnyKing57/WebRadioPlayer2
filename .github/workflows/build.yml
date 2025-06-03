@@ -18,9 +18,6 @@ jobs:
             libssl-dev libavcodec-dev libavformat-dev libavdevice-dev \
             libavutil-dev zlib1g-dev
 
-      - name: "🔄 Update Autoconf macros"
-        run: autoreconf -fi || true
-
       - name: "🐍 Set up Python 3.10"
         uses: actions/setup-python@v4
         with:
@@ -65,20 +62,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      # ❌ Supprimée : suppression destructrice de ~/.buildozer
-
       - name: "🔄 Force reinstallation of python-for-android"
         run: |
           pip uninstall python-for-android -y
           pip install python-for-android
 
-      - name: "🛠 Patch libffi configuration"
+      - name: "🛠 Patch libffi for LT_SYS_SYMBOL_USCORE"
         run: |
           echo "Patching libffi configure.ac files..."
-          find .buildozer -type f -name "configure.ac" | grep -i libffi | while read file; do
-            echo "Patching file: $file";
-            sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' "$file";
-          done || true
+          find .buildozer -type f -name "configure.ac" -exec sed -i '1im4_pattern_allow([LT_SYS_SYMBOL_USCORE])' {} \; || true
 
       - name: "🔨 Build APK"
         run: |
