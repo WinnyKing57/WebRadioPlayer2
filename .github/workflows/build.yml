@@ -18,11 +18,6 @@ jobs:
             libssl-dev libavcodec-dev libavformat-dev libavdevice-dev \
             libavutil-dev zlib1g-dev
 
-      - name: 🔄 Update Autoconf macros
-        run: |
-          autoupdate
-          autoreconf -fi
-
       - name: 🐍 Set up Python 3.10
         uses: actions/setup-python@v4
         with:
@@ -61,10 +56,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: 🧹 Clean previous builds
+      - name: 🔄 Clean previous builds and update Buildozer
         run: |
           rm -rf .buildozer
           buildozer android clean
+          pip install --upgrade buildozer cython
 
       - name: 🔨 Build APK
         run: |
