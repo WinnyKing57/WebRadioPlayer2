@@ -2,11 +2,13 @@ name: Build APK
 
 on:
   push:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: "📥 Checkout code"
@@ -15,9 +17,11 @@ jobs:
       - name: "⚙️ Install system dependencies"
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool pkg-config libffi-dev \
-            libssl-dev libavcodec-dev libavformat-dev libavdevice-dev \
-            libavutil-dev zlib1g-dev zip libsdl2-dev git
+          sudo apt-get install -y \
+            autoconf automake libtool pkg-config \
+            libffi-dev libssl-dev zlib1g-dev zip \
+            libsdl2-dev libavcodec-dev libavformat-dev \
+            libavdevice-dev libavutil-dev git
 
       - name: "🐍 Set up Python 3.10"
         uses: actions/setup-python@v4
@@ -33,22 +37,26 @@ jobs:
       - name: "📲 Set up Android SDK"
         uses: android-actions/setup-android@v3
         with:
-          packages: >
+          packages: |
             platform-tools
             platforms;android-34
             platforms;android-33
             build-tools;34.0.0
             build-tools;33.0.0
             ndk;25.2.9519653
+            cmake;3.22.1
 
-      - name: "✅ Accept Android SDK licenses"
-        run: yes | sdkmanager --licenses
+      - name: "✅ Accept licenses"
+        run: |
+          yes | sdkmanager --licenses || true
+          mkdir -p ~/.android
+          echo '### User Sources for Android SDK Manager' > ~/.android/repositories.cfg
 
       - name: "📦 Install Python dependencies"
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install --upgrade buildozer cython==0.29.36 python-for-android
-          pip install git+https://github.com/matham/ffpyplayer.git@master
+          python -m pip install --upgrade pip wheel setuptools
+          pip install --upgrade buildozer python-for-android
+          pip install cython==0.29.36
 
       - name: "🚀 Cache Buildozer"
         uses: actions/cache@v3
@@ -61,39 +69,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: "🔨 Run Buildozer"
+      - name: "🔧 Patch environment"
         run: |
-          # Set environment variables
-          export PATH=$PATH:~/.local/bin
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653
-          
-          # Clean previous builds
-          rm -rf .buildozer/android/platform/build-*/.gradle
-          
-          # Build with debug output
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_HOME/platform-tools:~/.local/bin" >> $GITHUB_ENV
+
+      - name: "🔨 Build APK"
+        run: |
+          buildozer -v android clean
           buildozer -v android debug 2>&1 | tee build.log
-          
-          # Save build log
           echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
           cat build.log >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
       - name: "📤 Upload build log"
-        if: ${{ always() }}
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
           path: build.log
 
-      - name: "🗜 Archive APK"
+      - name: "🗜 Package artifacts"
         if: success()
         run: |
           mkdir -p artifacts
           cp bin/*.apk artifacts/
           zip -j artifacts/webradio-apk.zip bin/*.apk
 
-      - name: "☁️ Upload APK Artifact"
+      - name: "☁️ Upload APK"
         if: success()
         uses: actions/upload-artifact@v4
         with:
