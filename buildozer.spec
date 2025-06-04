@@ -50,7 +50,7 @@ requirements =
     libffi,
     numpy,
     setuptools,
-    cython==0.29.36
+    cython==0.29.36,zlib
 
 # Options de build
 p4a.branch = v2024.01.21
