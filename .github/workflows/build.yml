@@ -27,10 +27,9 @@ jobs:
             libssl-dev \
             zlib1g-dev \
             zip \
-            libsdl2-dev \
             git
 
-      - name: Set up Python 3.10
+      - name: Set up Python 3.10.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.10.12'
