@@ -1,9 +1,4 @@
-# IMPORTANT: For release builds to work, you must set the following secrets in your GitHub repository:
-# ANDROID_RELEASE_KEYSTORE_BASE64: Your release keystore file, base64 encoded.
-# ANDROID_RELEASE_KEYSTORE_PASSWORD: Password for the keystore.
-# ANDROID_RELEASE_KEY_ALIAS: Alias for your release key.
-# ANDROID_RELEASE_KEY_PASSWORD: Password for the release key alias.
-name: Build AAB
+name: Build APK
 
 on:
   push:
@@ -16,33 +11,44 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: "📥 Checkout code"
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: "⚙️ Install system dependencies"
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake libtool libltdl-dev pkg-config \
-            libffi-dev libssl-dev zlib1g-dev zip \
-            libsdl2-dev libavcodec-dev libavformat-dev \
-            libavdevice-dev libavutil-dev git
+            autoconf \
+            automake \
+            libtool \
+            libltdl-dev \
+            pkg-config \
+            libffi-dev \
+            libssl-dev \
+            zlib1g-dev \
+            zip \
+            libsdl2-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libavdevice-dev \
+            libavutil-dev \
+            git
 
-      - name: "🐍 Set up Python 3.10"
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: "☕ Set up JDK 17"
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: "📲 Set up Android SDK + Tools"
+      - name: Set up Android SDK + Tools
         uses: android-actions/setup-android@v3
         with:
-          packages: >
+          packages: |
             platform-tools
             platforms;android-35
             platforms;android-34
@@ -51,82 +57,52 @@ jobs:
             ndk;26.3.11579264
             cmake;3.22.1
 
-      - name: "✅ Accept licenses"
+      - name: Accept licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           mkdir -p ~/.android
-          echo '### User Sources for Android SDK Manager' > ~/.android/repositories.cfg
+          echo 'count=0' > ~/.android/repositories.cfg
 
-      - name: "📦 Install Python dependencies"
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install --upgrade buildozer python-for-android flake8
           pip install cython==0.29.36
           pip install kivy==2.3.0 requests==2.31.0 plyer==2.1.0 numpy pyjnius ffpyplayer@git+https://github.com/matham/ffpyplayer.git@e8928e9de49c7528fc801c5b3fc9f9265452e722
 
-      - name: "🎨 Lint with Flake8"
+      - name: Lint with Flake8
         run: |
-          echo "Running Flake8..."
-          # Adjust the paths as necessary to cover your Python source files
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # To enforce Flake8 and fail the workflow on errors, you might remove --statistics and rely on exit code
-          # Or, more explicitly:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: "🧪 Run Unit Tests"
+      - name: Run Unit Tests
         run: |
-          echo "Running Unit Tests..."
-          # Assuming tests are in the root and can be discovered
-          # If tests are in a specific directory like 'tests/', use `python -m unittest discover tests`
-          # For now, try to run them directly. If they use unittest framework, this might need adjustment.
-          python test_kivy_sound.py
-          python test_plyer_import.py
-          # A more robust way if they are unittest compatible:
-          # python -m unittest discover -s . -p "test_*.py"
+          python -m unittest discover -s . -p "test_*.py"
 
-      - name: "🚀 Cache Buildozer"
+      - name: Cache Buildozer
         uses: actions/cache@v3
         with:
           path: |
             ~/.buildozer
             ~/.android
             ~/.gradle
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v5
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      - name: "🔧 Patch environment"
+      - name: Patch environment
         run: |
           echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> $GITHUB_ENV
           echo "PATH=$PATH:$ANDROID_HOME/platform-tools:~/.local/bin" >> $GITHUB_ENV
 
-      - name: "🔨 Build APK"
+      - name: Build APK
         run: |
           export SQLITE3_CFLAGS="-Dsqlite3StrNICmp=sqlite3StrICmp -Wno-error=implicit-function-declaration"
-          # buildozer -v android clean
-          buildozer -v android debug 2>&1 | tee build.log
-          echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
-          cat build.log >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          buildozer -v android debug
 
-      - name: "📤 Upload build log"
-        if: always()
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: build-log
-          path: build.log
-
-      - name: "🗜 Package APK"
-        if: success()
-        run: |
-          mkdir -p artifacts
-          cp bin/*.apk artifacts/
-          zip -j artifacts/webradio-apk.zip bin/*.apk
-
-      - name: "☁️ Upload APK"
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: webradio-apk
-          path: artifacts/*
+          name: my-apk
+          path: bin/*.apk
