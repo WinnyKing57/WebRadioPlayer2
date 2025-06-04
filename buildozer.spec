@@ -1,4 +1,5 @@
 [app]
+
 # Informations basiques de l'application
 title = WebRadioPy
 package.name = webradiopro
@@ -37,7 +38,7 @@ android.archs = armeabi-v7a, arm64-v8a
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, WAKE_LOCK, FOREGROUND_SERVICE
 
 # Dépendances Python
-requirements = 
+requirements =
     python3==3.10.12,
     kivy==2.3.0,
     requests==2.31.0,
@@ -50,10 +51,12 @@ requirements =
     libffi,
     numpy,
     setuptools==65.5.0,
-    cython==0.29.36,zlib,Pillow==9.5.0
+    cython==0.29.36,
+    zlib,
+    Pillow==9.5.0
 
 # Options de build
-p4a.branch = v2024.01.21
+p4a.branch = master  # Changer pour utiliser la branche master de Python-for-Android
 android.enable_androidx = True
 android.release_artifact = .aab
 android.accept_sdk_license = True
