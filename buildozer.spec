@@ -53,7 +53,7 @@ requirements =
     cython==0.29.36,zlib,Pillow==9.5.0
 
 # Options de build
-p4a.branch = master
+p4a.branch = v2024.01.21
 android.enable_androidx = True
 android.release_artifact = .aab
 android.accept_sdk_license = True

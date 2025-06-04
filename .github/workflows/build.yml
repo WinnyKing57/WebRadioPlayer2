@@ -91,7 +91,7 @@ jobs:
             ~/.buildozer
             ~/.android
             ~/.gradle
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v4
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v5
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
@@ -101,32 +101,11 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> $GITHUB_ENV
           echo "PATH=$PATH:$ANDROID_HOME/platform-tools:~/.local/bin" >> $GITHUB_ENV
 
-      - name: "🔑 Decode Keystore"
-        env:
-          ANDROID_RELEASE_KEYSTORE_BASE64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
+      - name: "🔨 Build APK"
         run: |
-          echo "Decoding keystore..."
-          echo $ANDROID_RELEASE_KEYSTORE_BASE64 | base64 --decode > $GITHUB_WORKSPACE/release.keystore
-          echo "Keystore decoded to $GITHUB_WORKSPACE/release.keystore"
-          ls -l $GITHUB_WORKSPACE/release.keystore
-
-      - name: "🔨 Build AAB"
-        run: |
-          echo "Wiping project's local .buildozer directory..."
-          rm -rf "$GITHUB_WORKSPACE/.buildozer"
-          echo "Done wiping project's local .buildozer directory."
-          echo "Attempting to clean p4a source cache..."
-          buildozer android p4a --clean_source_cache || true
-          echo "P4a source cache clean attempt finished."
-          export P4A_RELEASE_KEYSTORE_FILE="$GITHUB_WORKSPACE/release.keystore"
-          export P4A_RELEASE_KEYSTORE_PASSWORD="${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}"
-          export P4A_RELEASE_KEY_ALIAS="${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}"
-          export P4A_RELEASE_KEY_PASSWORD="${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}"
-          echo "Signing parameters set."
-          echo "P4A_RELEASE_KEYSTORE_FILE: $P4A_RELEASE_KEYSTORE_FILE"
           export SQLITE3_CFLAGS="-Dsqlite3StrNICmp=sqlite3StrICmp -Wno-error=implicit-function-declaration"
           # buildozer -v android clean
-          buildozer -v android release 2>&1 | tee build.log
+          buildozer -v android debug 2>&1 | tee build.log
           echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
           cat build.log >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -138,16 +117,16 @@ jobs:
           name: build-log
           path: build.log
 
-      - name: "🗜 Package artifacts"
+      - name: "🗜 Package APK"
         if: success()
         run: |
           mkdir -p artifacts
-          cp bin/*.aab artifacts/
-          zip -j artifacts/webradio-aab.zip bin/*.aab
+          cp bin/*.apk artifacts/
+          zip -j artifacts/webradio-apk.zip bin/*.apk
 
-      - name: "☁️ Upload AAB"
+      - name: "☁️ Upload APK"
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: webradio-aab
+          name: webradio-apk
           path: artifacts/*
