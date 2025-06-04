@@ -49,7 +49,7 @@ requirements =
     ffpyplayer @ git+https://github.com/matham/ffpyplayer.git@e8928e9de49c7528fc801c5b3fc9f9265452e722,
     libffi,
     numpy,
-    setuptools,
+    setuptools==65.5.0,
     cython==0.29.36,zlib,Pillow==9.5.0
 
 # Options de build
