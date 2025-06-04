@@ -66,6 +66,7 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           pip install --upgrade buildozer python-for-android flake8
           pip install cython==0.29.36
+          pip install kivy==2.3.0 requests==2.31.0 plyer==2.1.0 numpy pyjnius audiostream ffpyplayer@git+https://github.com/matham/ffpyplayer.git@e8928e9de49c7528fc801c5b3fc9f9265452e722
 
       - name: "🎨 Lint with Flake8"
         run: |
