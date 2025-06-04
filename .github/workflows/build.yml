@@ -95,7 +95,7 @@ jobs:
             ~/.buildozer
             ~/.android
             ~/.gradle
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v2
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-v3
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
@@ -116,6 +116,9 @@ jobs:
 
       - name: "🔨 Build AAB"
         run: |
+          echo "Wiping project's local .buildozer directory..."
+          rm -rf "$GITHUB_WORKSPACE/.buildozer"
+          echo "Done wiping project's local .buildozer directory."
           export P4A_RELEASE_KEYSTORE_FILE="$GITHUB_WORKSPACE/release.keystore"
           export P4A_RELEASE_KEYSTORE_PASSWORD="${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}"
           export P4A_RELEASE_KEY_ALIAS="${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}"
