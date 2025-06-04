@@ -55,7 +55,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install buildozer python-for-android
-          pip install cython==0.29.36 kivy==2.3.0 requests==2.31.0 plyer==2.1.0 numpy pyjnius Pillow==9.5.0
+          pip install cython==0.29.36 kivy==2.3.0 requests==2.31.0 plyer==2.1.0 numpy pyjnius
 
       - name: Cache Buildozer
         uses: actions/cache@v3
@@ -72,3 +72,9 @@ jobs:
         run: |
           export SQLITE3_CFLAGS="-Dsqlite3StrNICmp=sqlite3StrICmp -Wno-error=implicit-function-declaration"
           buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-apk
+          path: bin/*.apk
