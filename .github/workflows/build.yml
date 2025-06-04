@@ -123,7 +123,7 @@ jobs:
           echo "Signing parameters set."
           echo "P4A_RELEASE_KEYSTORE_FILE: $P4A_RELEASE_KEYSTORE_FILE"
           export SQLITE3_CFLAGS="-Dsqlite3StrNICmp=sqlite3StrICmp -Wno-error=implicit-function-declaration"
-          buildozer -v android clean
+          # buildozer -v android clean
           buildozer -v android release 2>&1 | tee build.log
           echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
           cat build.log >> $GITHUB_ENV
