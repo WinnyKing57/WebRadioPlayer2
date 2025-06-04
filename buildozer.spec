@@ -32,7 +32,6 @@ presplash.filename = assets/presplash.png
 android.api = 34
 android.minapi = 23
 android.archs = armeabi-v7a, arm64-v8a
-android.ndk_path = /home/runner/.android/ndk/25.2.9519653
 
 # Permissions
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, WAKE_LOCK, FOREGROUND_SERVICE
@@ -47,18 +46,24 @@ requirements =
     openssl,
     pyjnius,
     audiostream,
-    ffpyplayer @ git+https://github.com/matham/ffpyplayer.git@master,
+    ffpyplayer @ git+https://github.com/matham/ffpyplayer.git@e8928e9de49c7528fc801c5b3fc9f9265452e722,
     libffi,
     numpy,
     setuptools,
     cython==0.29.36
 
 # Options de build
-p4a.branch = develop
+p4a.branch = v2024.01.21
 android.enable_androidx = True
-android.release_artifact = .apk
+android.release_artifact = .aab
 android.accept_sdk_license = True
 android.logcat_filters = *:S python:D
+
+# Keystore settings - will be overridden by environment variables in CI
+android.release_keystore_file = ./android.keystore
+android.release_keystore_password = android
+android.release_key_alias = androidkey
+android.release_key_password = android
 
 [buildozer]
 log_level = 2
