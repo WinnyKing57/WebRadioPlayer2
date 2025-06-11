@@ -1,0 +1,9 @@
+[0]: I/libPowerHal: [perfNotifyAppState] pack:com.example.webradioapp, act:com.example.webradioapp.activities.MainActivity, state:1, pid:24119, uid:11377, fps:60
+[1]: I/libPowerHal: [perfNotifyAppState] foreground:com.example.webradioapp, pid:24119, uid:11377
+[2]: I/UxUtility: notifyForegroundApp pack:com.example.webradioapp, uid:11377
+[3]: I/mtkpower@impl: [notifyAppState] pc:1, com.ss.squarehome2 => com.example.webradioapp
+[4]: I/libPowerHal: [perfNotifyAppState] pack:com.example.webradioapp, act:com.example.webradioapp, state:3, pid:24119, uid:11377, fps:60
+[5]: I/libPowerHal: [perfNotifyAppState] pack:com.example.webradioapp, pid:24119, STATE_DEAD
+[6]: I/mtkpower@impl: [notifyAppState] pc:1, com.example.webradioapp => com.ss.squarehome2
+[7]: I/libPowerHal: [perfNotifyAppState] pack:com.example.webradioapp, act:com.example.webradioapp, state:3, pid:24119, uid:11377, fps:-1
+[8]: I/libPowerHal: [perfNotifyAppState] pack:com.example.webradioapp, pid:24119, STATE_DEAD
